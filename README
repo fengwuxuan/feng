@@ -57,13 +57,19 @@ git push origin master : 推送到远程仓库。
 
 
 ####################打标签
+
 git tag ；列出现有的标签,标签是对某一时间点上的版本打上标签. git tag -l 'v1.4.2.*' 显示部分标签
+
 git tag -a v1.4 -m 'my version 1.4' : -a表示增加标签,-m添加说明信息,这是一个含有附注信息的标签,轻量级的标签不添加附注信息.直接用 git tag name
+
 git show : 查看当前版本信息.
+
 git push origin [tagname] : 才能分享标签到远程分支,否则不会分享,若需要全部分享使用 --tags选项即可
 
 
 ##################技巧
+
 将source ~/.git-completion.bash加入bashrc中即可享受自动补全输入
+
 git config --global alias.co checkout 命令别名为co
 
