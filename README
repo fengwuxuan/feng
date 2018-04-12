@@ -47,4 +47,4 @@ git merge : 合并
 
 git pull origin master: 相当于fetch+merge
 
-git push -u origin master：首次推送到远程仓库，后面可以不用-u。
+git push origin master：首次推送到远程仓库。
