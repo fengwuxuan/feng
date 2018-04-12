@@ -36,3 +36,4 @@ git reset HEAD ：取消已经暂存的文件。git reset --hard commit id 可�
 ###########远程仓库管理
 
 git remote : 查看远程仓库列表 -v 显示git地址
+ooooooooooooooo
