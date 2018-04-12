@@ -7,7 +7,7 @@ This is just a demo for git usage!
 config ：git config user.name “fengwuxuan”  
          git config user.email ***@***
 
-git add files : 暂存文件，可以用*暂存所有问津
+git add files : 增加跟踪的暂存文件，可以用*暂存所有文件，文件通过该方式加入暂存文件表，如果不加入，commit的时候是不会被更新到版本库的。
 
 .gitignore : 忽略某些文件，可以采用正则匹配，*.so 忽略所有so文件  *.[oa] 忽略所有的.o和.a文件
 
@@ -35,4 +35,16 @@ git reset HEAD ：取消已经暂存的文件,可以指定file，从暂存区恢
 
 ###########远程仓库管理
 
+需要先配置ssh keys，ssh-keygen -t rsa -C "youremail@example.com"，生成id_rsa和id_rsa.pub文件，一路默认即可，然后在github账户的SSH Keys中新建ssh key并添加id_rsa.pub内容。
+
 git remote : 查看远程仓库列表 -v 显示git地址
+git remote add origin https://github.com/tensorflow/models.git 增加远程仓库。origin是远程仓库名，可以改成别的。
+git remote remove nam : 移除
+
+git fetch : 从远程获取最新版本到本地，不会自动merge
+
+git merge : 合并
+
+git pull origin master: 相当于fetch+merge
+
+git push -u origin master：首次推送到远程仓库，后面可以不用-u。
