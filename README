@@ -1,0 +1,11 @@
+This is just a demo for git usage!
+/********  git   usage  *********/
+config ：git config user.name “fengwuxuan”  
+         git config user.email ***@***
+
+git add files : 暂存
+
+.gitignore : 忽略某些文件，可以采用正则匹配，*.so 忽略所有so文件  *.[oa] 忽略所有的.o和.a文件
+
+git diff [file] : 查看具体文件修改了那些内容，前提是文件还没有暂存或者提交，也可以直接git diff查看所有的改动,要看已经暂存起来的文件和上次提交时的快照之间的差异，可以用 git diff --cached 命令。（Git 1.6.1 及更高版本还允许使用 git diff --staged，效果是相同的，但更好记些。）,单单 git diff 不过是显示还没有暂存起来的改动，而不是这次工作和上次提交之间的差异。所以有时候你一下子暂存了所有更新过的文件后，运行 git diff 后却什么也没有，就是这个原因.
+git commit:可以在首行添加此次提交的信息：# 提交信息  也可以利用git commit -m “提交信息”添加。可以修改git commit的编辑工具git config --global core.editor vim。
