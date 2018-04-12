@@ -40,6 +40,8 @@ git reset HEAD ：取消已经暂存的文件,可以指定file，从暂存区恢
 git remote : 查看远程仓库列表 -v 显示git地址
 git remote add origin https://github.com/tensorflow/models.git 增加远程仓库。origin是远程仓库名，可以改成别的。
 git remote remove nam : 移除
+git remote rename old new : 重命名
+git remote show name : 查看仓库信息
 
 git fetch : 从远程获取最新版本到本地，不会自动merge
 
@@ -52,3 +54,16 @@ git push origin master : 推送到远程仓库。
 为了防止每次push都输入用户名和密码，在本地仓库的.git/config文件中加入如下信息,即可保存用户名和密码
 [credential]
     helper = store
+
+
+####################打标签
+git tag ；列出现有的标签,标签是对某一时间点上的版本打上标签. git tag -l 'v1.4.2.*' 显示部分标签
+git tag -a v1.4 -m 'my version 1.4' : -a表示增加标签,-m添加说明信息,这是一个含有附注信息的标签,轻量级的标签不添加附注信息.直接用 git tag name
+git show : 查看当前版本信息.
+git push origin [tagname] : 才能分享标签到远程分支,否则不会分享,若需要全部分享使用 --tags选项即可
+
+
+##################技巧
+将source ~/.git-completion.bash加入bashrc中即可享受自动补全输入
+git config --global alias.co checkout 命令别名为co
+
