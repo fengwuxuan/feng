@@ -3,9 +3,17 @@ This is just a demo for git usage!
 config ：git config user.name “fengwuxuan”  
          git config user.email ***@***
 
-git add files : 暂存
+git add files : 暂存文件，可以用*暂存所有问津
 
 .gitignore : 忽略某些文件，可以采用正则匹配，*.so 忽略所有so文件  *.[oa] 忽略所有的.o和.a文件
 
 git diff [file] : 查看具体文件修改了那些内容，前提是文件还没有暂存或者提交，也可以直接git diff查看所有的改动,要看已经暂存起来的文件和上次提交时的快照之间的差异，可以用 git diff --cached 命令。（Git 1.6.1 及更高版本还允许使用 git diff --staged，效果是相同的，但更好记些。）,单单 git diff 不过是显示还没有暂存起来的改动，而不是这次工作和上次提交之间的差异。所以有时候你一下子暂存了所有更新过的文件后，运行 git diff 后却什么也没有，就是这个原因.
-git commit:可以在首行添加此次提交的信息：# 提交信息  也可以利用git commit -m “提交信息”添加。可以修改git commit的编辑工具git config --global core.editor vim。
+
+git commit:可以在首行添加此次提交的信息：# 提交信息  利用git commit -m “提交信息”提交（这才是真正的提交）。可以修改git commit的编辑工具git config --global core.editor vim。
+           Git 提供了一个跳过使用暂存区域的方式，只要在提交的时候，给 git commit 加上 -a 选项，Git 就会自动把所有已经跟踪过的文件暂存起来一并提交，从而跳过 git add 步骤。
+
+git rm : 要从 Git 中移除某个文件，就必须要从已跟踪文件清单中移除（确切地说，是从暂存区域移除），然后提交。可以用 git rm 命令完成此项工作，并连带从工作目录中删除指定的文件，这样以后就不会出现在未跟踪文件清单中了。若需要删除文件需要手动删除文件并git rm，该文件就不会出现在仓库中了。
+
+git mv ：移动文件或者重命名。
+
+git log ：查看提交历史，-p查看提交差异。
