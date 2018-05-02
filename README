@@ -73,3 +73,75 @@ git push origin [tagname] : 才能分享标签到远程分支,否则不会分享
 
 git config --global alias.co checkout 命令别名为co
 
+##################分支
+Git 中的分支，其实本质上仅仅是个指向 commit 对象的可变指针。Git 会使用 master 作为分支的默认名字。在若干次提交后，你其实已经有了一个指向最后一次提交对象的
+master 分支，它在每次提交的时候都会自动向前移动。git保存着一个名为 HEAD 的特别指针，保存着当前分支的指针。由于 Git 中的分支实际上仅是一个包含所指对象校验和
+（40 个字符长度 SHA-1 字串）的文件，所以创建和销毁一个分支就变得非常廉价。说白了，新建一个分支就是向一个文件写入 41 个字节（外加一个换行符）那么简单，当然也
+就很快了。
+
+git branch name :创建分支name，他也只是在本地创建了一个本地分支，还没有从master分支切换出来，他实际上就是创建了一个指向当前commit对象的指针。
+
+git checkout name：转到分支name，此时任何改动再进行commit都会被提交到name分支。所谓转移也不过是将HEAD指针指向name指针。
+
+git checkout -b name：创建name分支并转到该分支，相当于上面两个分支的合并。
+
+git merge name：分支合并，将当前分支和master分支进行合并，这有利于对工程进行修改。
+
+git branch -d name：删除某个分支。
+
+git status：当合并收到冲突时可以用他来查看冲突原因。
+
+git branch：列出当前所有的分支，当前分支名称前会有一个*符号，--merged参数会列出已经被合并的分支。
+
+git push labname name：将本地分支name推送到远程仓库。同理fetch是可以获取远程分支的。
+
+git checkout --track labname/name：跟踪远程分支。
+
+git push labname：name：删除某个分支，也是够奇葩的命令
+
+git rebase name：将当前分支的改变在name分支里面重新做一遍，相当于合并。
+
+####################协议
+Git 可以使用四种主要的协议来传输数据：本地传输，SSH 协议，Git 协议和 HTTP 协议。
+
+最基本的就是本地协议（Local protocol），所谓的远程仓库在该协议中的表示，就是硬盘上的另一个目录。这常见于团队每一个成员都对一个共享的文件系统（例如 NFS）
+拥有访问权，或者比较少见的多人共用同一台电脑的情况。后面一种情况并不安全，因为所有代码仓库实例都储存在同一台电脑里，增加了灾难性数据损失的可能性。
+git clone /opt/git/project.git
+git clone file:///opt/git/project.git二者都是对本地仓库的克隆，但如果在 URL 开头明确使用 file:// ，那么 Git 会以一种略微不同的方式运行。如果你只给出
+路径，Git 会尝试使用硬链接或直接复制它所需要的文件。如果使用了 file:// ，Git 会调用它平时通过网络来传输数据的工序，而这种方式的效率相对较低。
+git remote add local_proj /opt/git/project.git：添加一个本地的远程仓库
+
+Git 使用的传输协议中最常见的可能就是 SSH 了，SSH 也是唯一一个同时支持读写操作的网络协议。另外两个网络协议（HTTP 和 Git）通常都是只读的，所以虽然二者对大
+多数人都可用，但执行写操作时还是需要 SSH。SSH 同时也是一个验证授权的网络协议；而因为其普遍性，一般架设和使用都很容易。缺点在于不能实现匿名访问了。
+git clone ssh://user@server/project.git
+git clone user@server:project.git（当不指定协议时，默认的就是ssh）
+
+git协议是一个包含在 Git 软件包中的特殊守护进程； 它会监听一个提供类似于 SSH 服务的特定端口（9418），而无需任何授权。打算支持 Git 协议的仓库，需要先创建 
+git-daemon-export-ok 文件 — 它是协议进程提供仓库服务的必要条件 — 但除此之外该服务没有什么安全措施。要么所有人都能克隆 Git 仓库，要么谁也不能。这也意味
+着该协议通常不能用来进行推送。
+
+HTTP 或 HTTPS 协议的优美之处在于架设的简便性。基本上，只需要把 Git 的裸仓库文件放在 HTTP 的根目录下，配置一个特定的 post-update 挂钩（hook）就可以搞定,
+但是缺点在于效率更低，克隆或者下载仓库内容可能会花费更多时间，而且 HTTP 传输的体积和网络开销比其他任何一个协议都大。
+git clone http://example.com/gitproject.git
+
+#######################服务器git
+
+git clone --bare my_project my_project.git:将现有仓库导出为裸仓库（即一个不包含当前工作目录的仓库），相当于git init创建空目录，然后执行git fetch
+
+scp -r my_project.git user@git.example.com:/opt/git：将仓库部署到服务器上，注意是ssh协议部署。然后团队中的人访问有三个办法：第一是给每个人建立一个账
+户，直截了当但略过繁琐。反复运行 adduser 并给所有人设定临时密码可不是好玩的。第二个办法是在主机上建立一个 git 账户，让每个需要写权限的人发送一个 SSH 公
+钥，然后将其加入 git 账户的 ~/.ssh/authorized_keys 文件。这样一来，所有人都将通过 git 账户访问主机。这丝毫不会影响提交的数据 — 访问主机用的身份不会影
+响提交对象的提交者信息。另一个办法是让 SSH 服务器通过某个 LDAP 服务，或者其他已经设定好的集中授权机制，来进行授权。只要每个人都能获得主机的 shell 访问权
+，任何可用的 SSH 授权机制都能达到相同效果。
+
+ssh-keygen:生成服务器公钥，一般是在.ssh文件夹中
+ssh-copy-id example.com：将自己的公钥提交到服务器。
+
+架设服务器：创建一个git账户，然后将所有人的公钥逐个追加到该账户.ssh文件夹下authorized_keys 文件尾部即可
+git --bare init：创建一个裸仓库，这样成员们就可以以他为仓库进行操作了
+你可以用 Git 自带的 git-shell 工具限制 git 用户的活动范围。只要把它设为 git 用户登入的 shell，那么该用户就无法使用普通的 bash 或者 csh 什么的 shell 程序。
+具体方法是修改passwd文件，将其bin/sh 改为 /usr/bin/git-shell。
+
+公共访问：即实现匿名访问，需要开启挂钩以及服务器配置，具体参见https://git-scm.com/book/zh/v1/%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E7%9A%84-Git-%E5%85%AC%E5%85%B1%E8%AE%BF%E9%97%AE
+
+工具：gitweb,web访问的客户端，gitosis，公钥管理，gitolite，是在Git之上的一个授权层，依托sshd或者httpd来进行认证。
