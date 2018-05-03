@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-python main.py --data_path /DATACENTER2/wxy/workspace/TRN-pytorch/video_datasets --video_path something/20bn-something-something-v1 --annotation_path something/something-something-v1- --result_path results/p3d199_something --dataset something --n_classes 400 --n_finetune_classes 174 --learning_rate 0.001 --weight_decay 1e-4 --mean_dataset kinetics --pretrain_path models/pretrain/p3d_rgb_199.checkpoint.pth.tar --model P3D199 --batch_size 64 --n_threads 4 --checkpoint 2 --n_epochs 100 --step 100000 --sample_size 160
