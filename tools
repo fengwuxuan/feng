@@ -1,0 +1,123 @@
+############################## python--lmdb
+1. 存储：记录被存放到page（和操作系统的虚拟page大小一致，一般是4096bytes），一条记录大小为（8+key+value）不超过2040bytes，另外还需要一个16bytes的header。
+2. lmdb.open(path, **kwargs)：Environment构造的捷径，一般都是使用它来创建env，path是文件夹路径（包含data.mdb,lock.mdb）
+3. lmdb.version()：返回版本的tuple（major，minor，patch），与lmdb.__version__略有不同。
+4. class lmdb.Environment(path, map_size=10485760, subdir=True, readonly=False, metasync=True, sync=True, map_async=False, mode=493, create=True,
+   readahead=True, writemap=False, meminit=True, max_readers=126, max_dbs=0, max_spare_txns=1, lock=True)
+   数据库环境类，每个对象可能包含多个数据库，他们共享内存map和磁盘文件，为了写操作，必须建立一个写事务，同时可以创建多个读事务，即使写事务存在。
+   path ： 目录路径（subdir=True）或数据库文件前缀
+   map_size：数据库最大尺寸，如果超出会抛出异常用户必须关闭并重新打开environment，在64位系统可以为1TB，32位为2GB。
+   subdir：为true时path是一个目录，在下面建立两个文件data.mdb lock.mdb
+   readonly:限制数据库模式为只读
+   metasync：如果为false，则每个事务只flush一次系统buffers到硬盘，并且忽略元数据
+   sync：如果false，当提交事务时不会flush buffers到硬盘。
+   mode：文件创建模式，默认即可
+   create：如果false，当path文件夹不存在时不会主动创建
+   writemap：如果true，使用可写的map，即使readonly为true。
+   meminit：为true时map内存初始化为0
+   max_readers：读事务的最大个数
+   max_dbs：数据库最大个数
+   lock：如果为false，则不会给数据库加任何锁
+   begin(db=None, parent=None, write=False, buffers=False)：事务构造捷径，默认为读事务,一般是用它来构造txn，write=True时才能写数据库。
+   close()：关闭environment，等同于mdb_env_close()
+   copy(path, compact=False)：拷贝environment，等同于 mdb_env_copy()
+   copyfd(fd, compact=False)：拷贝文件描述符，等同于mdb_env_copyfd()
+   flags()：返回描述environment的flag
+   info():返回environment信息，包括RAM map_addr， map_size， 最后使用的page的id，最后提交的事务id，最大读事务数，当前读事务数
+   max_key_size()
+   max_readers()
+   open_db(key=None, txn=None, reverse_key=False, dupsort=False, create=True, integerkey=False, integerdup=False, dupfixed=False):打开新的数据库
+   path()
+   readers()
+   set_mapsize(map_size)
+   stat()：返回environment的状态，包括page大小，B树的深度（lmdb组织是B树）等
+   sync():刷新buffers
+5. class lmdb.Transaction(env, db=None, parent=None, write=False, buffers=False)：事务类，所有操作都需要事务handle，注意写事务不能跨线程。
+   db:可以指定名称，否则用env的主数据库
+   parent：父事务
+   buffers：如果是true，需要指定buffer对象替换默认的bytestring。
+   abort()：退出当前未决的事务，如果之前有过commit、abort或者env关闭了，则该操作不会有影响
+   commit():提交当前事务
+   cursor(db=None)：lmdb.Cursor的快捷构造
+   delete(key, value='', db=None)：从数据库中删除一个数据
+   drop(db, delete=True)：删除数据库中所有的key
+   get(key, default=None, db=None)：返回满足key的第一个值
+   id()：返回事务的id
+   pop(key, db=None)：使用一个临时的cursor对象触发Cursor.pop
+   put(key, value, dupdata=True, overwrite=True, append=False, db=None)：存放一条记录，overwrite控制是否覆盖记录
+   replace(key, value, db=None)：同样使用临时的cursor对象触发Cursor.replace对象
+   stat(db)：返回类似env.stat的信息
+6. class lmdb.Cursor(db, txn)：数据库游标类，需要通过数据库和事务来构造，通常用txn.cursor快捷构造。
+   close()
+   count()：返回当前key的value个数
+   delete(dupdata=False)：删除当前游标指向的记录，如果dupdata为true，则删除所有复制的数据
+   first()：移动到第一条记录
+   first_dup()：移动到第一条记录，仅当数据库以dupsort = true方式打开时为真。
+   get(key, default=None)：根据记录的key获取value
+   item()：返回当前（key，value）对
+   iternext(keys=True, values=True)：返回一个前向迭代器
+   iternext_dup(keys=False, values=True)：返回迭代器，带有复制
+   iternext_nodup(keys=True, values=False)
+   iterprev(keys=True, values=True)
+   iterprev_dup(keys=False, values=True)
+   iterprev_nodup(keys=True, values=False)
+   key()：返回当前记录的key
+   last()
+   last_dup()
+   next()：移动到下一个元素
+   next_dup():移动到当前记录的下一个值
+   next_nodup()：移动到当前记录的下一个值
+   pop(key)
+   prev()
+   prev_dup()
+   prev_nodup()
+   put(key, val, dupdata=True, overwrite=True, append=False)：dupdata为true并且database打开模式为dupsort，该命令会未每条记录复制一个副本
+   putmulti(items, dupdata=True, overwrite=True, append=False)：items是一个（key，value）的迭代器
+   replace(key, val)
+   set_key(key)：准确搜索key
+   set_key_dup(key, value)
+   set_range(key)：搜索大于等于key的记录
+   value()：返回当前记录的value
+7. 异常
+   class lmdb.Error：基类
+   class lmdb.KeyExistsError：Key/data pair 已经存在
+   class lmdb.NotFoundError：找不到 key/data pair
+   class lmdb.PageNotFoundError：Request page not found.
+   class lmdb.CorruptedError：Located page was of the wrong type.
+   class lmdb.PanicError：Update of meta page failed.
+   class lmdb.VersionMismatchError：Database environment version mismatch.
+   class lmdb.InvalidError：File is not an MDB file.
+   class lmdb.MapFullError：Environment map_size= limit reached.
+   class lmdb.DbsFullError：Environment max_dbs= limit reached.
+   class lmdb.ReadersFullError：Environment max_readers= limit reached.
+   class lmdb.TlsFullError：Thread-local storage keys full - too many environments open.
+   class lmdb.TxnFullError：Transaciton has too many dirty pages - transaction too big.
+   class lmdb.CursorFullError：Internal error - cursor stack limit reached.
+   class lmdb.PageFullError：Internal error - page has no more space.
+   class lmdb.MapResizedError：Database contents grew beyond environment map_size=.
+   class lmdb.IncompatibleError：Operation and DB incompatible, or DB flags changed.
+   class lmdb.BadDbiError：The specified DBI was changed unexpectedly.
+   class lmdb.BadRslotError：Invalid reuse of reader locktable slot.
+   class lmdb.BadTxnError：Transaction cannot recover - it must be aborted.
+   class lmdb.BadValsizeError：Too big key/data, key is empty, or wrong DUPFIXED size.
+   class lmdb.ReadonlyError：An attempt was made to modify a read-only database.
+   class lmdb.InvalidParameterError:An invalid parameter was specified.
+   class lmdb.LockError：The environment was locked by another process.
+   class lmdb.MemoryError：Out of memory.
+   class lmdb.DiskError：No more disk space.   
+8. example：
+   import lmdb
+   env = lmdb.open("students");
+   txn = env.begin(write=True);
+   txn.put(str(1), "Alice");
+   txn.put(str(2), "Bob");
+   txn.put(str(3), "Peter");
+   txn.delete(str(1));
+   txn.put(str(3), "Mark");
+   txn.get(str(2));
+   cursor = txn.cursor()
+   cursor.first()
+   cursor.get(cursor.key())
+   cursor.next()
+   cursor.get(cursor.key())
+   txn.commit();
