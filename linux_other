@@ -159,3 +159,50 @@
           ulimit -c 0：用于阻止core文件的生成
           在core文件夹下gdb -c core它会启动GNU的调试器，来调试core文件，并且会显示生成此core文件的程序名，中止此程序的信号等等，获得程序名后可以用gdb -c core name
           /proc/sys/kernel/core_uses_pid可以控制产生的core文件的文件名中是否添加pid作为扩展，如果添加则文件内容为1，否则为0
+
+############################程序相关篇
+
+#########配置 + 编译  + 安装
+
+1. 配置： ./configure --help查看可用的配置选项，一般是使用configure文件生成配置，它实际上是一个Linux shell脚本，它可以自动设定源程序以符合各种不同平台上Unix系统的
+          特性，并且根据系统叁数及环境产生合适的Makefile文件或是C的头文件(header file)，让源程序可以很方便地在这些不同的平台上被编译连接。
+          
+          生成过程无需手动编写，过程如下：
+          1）我们使用autoscan命令来帮助我们根据目录下的 源代码生成一个configure.in的 模板文件.一般生成的是一个configure.scan文件，我们以它为蓝本复制configure.in文件
+             并手动去除无关的语句。
+          2）然后执行命令aclocal和autoconf,分别会产生aclocal.m4及configure两个文件，configure.in内容是 一些宏定义,这些宏经autoconf处理后会变成检查系统特性.环境变量.软
+             件必须的 参数的 shell脚本.autoconf 是 用来生成自动配置软件源代码脚本（configure）的 工具.configure脚本能独立于autoconf运行,且在 运行的 过程中,不需要用户的
+             干预.要生成configure文件,你必须告诉autoconf如何找到你所用的 宏.方式是 使用aclocal程序来生成你的 aclocal.m4.aclocal根据configure.in文件的 内容,自动生成
+             aclocal.m4文件.aclocal是 一个perl 脚本程序,它的 定义是 ：”aclocal – create aclocal.m4 by scanning configure.ac”.autoconf从configure.in这个列举编译软件
+             时所需要各种参数的 模板文件中创建configure.autoconf需要GNU m4宏处理器来处理aclocal.m4,生成configure脚本.m4是 一个宏处理器.将输入拷贝到输出,同时将宏展开.宏
+             可以是 内嵌的 ,也可以是 用户定义的 .除了可以展开宏,m4还有一些内建的 函数,用来引用文件,执行命令,整数运算,文本操作,循环等.m4既可以作为编译器的 前端,也可以单独作
+             为一个宏处理器.
+          3）新建一个Makefile.am,automake会根据你写的 Makefile.am来自动生成Makefile.in，Makefile.am中定义的 宏和目标,会指导automake生成指定的 代码.例如,宏bin_PROGRAMS
+             将导致编译和连接的 目标被生成.
+          4）执行configure生成Makefile文件
+2. 编译：执行make，makefile的系统编写请参考makefile
+         编译的更多选项可以应用CMAKE，它是一个跨平台的安装（编译）工具，可以用简单的语句来描述所有平台的安装(编译过程)。他能够输出各种各样的makefile或者project文件。使用CMake，
+         能够使程序员从复杂的编译连接过程中解脱出来。它使用一个名为 CMakeLists.txt 的文件来描述构建过程,可以生成标准的构建文件,如 Unix/Linux 的 Makefile 或Windows Visual C++ 
+         的 projects/workspaces 。编译依赖的库
+         
+         注意编译过程中需要显示指明部分依赖：
+           CPPFLAGS -I标记非标准头文件存放路径
+           LDFLAGS  -L标记非标准库存放路径
+3. 安装：make install 即可
+
+##############################调试篇
+
+1. gdb调试：参见gdb调试
+2. pstack跟踪栈空间：pstack 命令必须由相应进程的属主或 root 运行。其核心实现就是使用了gdb以及thread apply all bt命令;一般使用时pstack pid
+3. strace分析系统调用：strace常用来跟踪进程执行时的系统调用和所接收的信号。在Linux世界，进程不能直接访问硬件设备，当进程需要访问硬件设备(比如读取磁盘文件，接收网络数据等等)时，必须由
+   用户态模式切换至内核态模式，通过系统调用访问硬件设备。strace可以跟踪到一个进程产生的系统调用,包括参数，返回值，执行消耗的时间。
+   strace -o output.txt -T -tt -e trace=all -p 28979
+   strace -p <process-pid>：实时输出
+         
+         
+
+
+
+
+
+
