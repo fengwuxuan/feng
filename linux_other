@@ -159,6 +159,9 @@
           ulimit -c 0：用于阻止core文件的生成
           在core文件夹下gdb -c core它会启动GNU的调试器，来调试core文件，并且会显示生成此core文件的程序名，中止此程序的信号等等，获得程序名后可以用gdb -c core name
           /proc/sys/kernel/core_uses_pid可以控制产生的core文件的文件名中是否添加pid作为扩展，如果添加则文件内容为1，否则为0
+32. nl、cat、more、less对比:将文件输出到标准输出，默认加上行号，和cat差不多，不同的是cat将标准输入输出到标准输出或者拼接文件。more和less一般用于显示文件内容超过一屏的内容，并且提供翻页的
+    功能。more比cat强大，提供分页显示的功能，less比more更强大，提供翻页，跳转（：num跳转到指定行），查找等命令。在 more 的时候，我们并没有办法向前面翻， 只能往后面看，但若使用了 less 时，就可以使用 [pageup] 
+    [pagedown] 等按键的功能来往前往后翻看文件，更容易用来查看一个文件的内容。less支持上下键，more是不支持的
 
 ############################程序相关篇
 
@@ -198,8 +201,135 @@
    用户态模式切换至内核态模式，通过系统调用访问硬件设备。strace可以跟踪到一个进程产生的系统调用,包括参数，返回值，执行消耗的时间。
    strace -o output.txt -T -tt -e trace=all -p 28979
    strace -p <process-pid>：实时输出
-         
-         
+4. nm：列出目标文件的符号清单。文件可以是对象文件、可执行文件或对象文件库。如果文件没有包含符号信息，nm 命令报告该情况，但不把它解释为出错条件。 nm 命令缺省情况下报告十进制符号表示法
+   下的数字值。包含可执行代码的段称为正文段。同样地，数据段包含了不可执行的信息或数据。另一种类型的段，称为 BSS 段，它包含以符号数据开头的块,一般而言，bss段分配于RAM中。
+   选项说明：
+   -a或–debug-syms：显示所有的符号，包括debugger-only symbols。（默认是不会显示debug符号的）
+   -B：等同于–format=bsd，用来兼容MIPS的nm。
+   -C或–demangle：将低级符号名解析(demangle)成用户级名字。这样可以使得C++函数名具有可读性。（可以输出函数、对象的具体名称，可读性更强）
+   –no-demangle：默认的选项，不需要将低级符号名解析成用户级名。
+   -D或–dynamic：显示动态符号。该任选项仅对于动态目标(例如特定类型的共享库)有意义。
+   -f format：使用format格式输出。format可以选取bsd、sysv或posix，该选项在GNU的nm中有用。默认为bsd。
+   -g或–extern-only：仅显示外部符号。
+   -n、-v或–numeric-sort：按符号对应地址的顺序排序，而非按符号名的字符顺序。
+   -p或–no-sort：按目标文件中遇到的符号顺序显示，不排序。
+   -P或–portability：使用POSIX.2标准输出格式代替默认的输出格式。等同于使用任选项-f posix。
+   -s或–print-armap：当列出库中成员的符号时，包含索引。索引的内容包含：哪些模块包含哪些名字的映射。
+   -r或–reverse-sort：反转排序的顺序(例如，升序变为降序)。
+   –size-sort：按大小排列符号顺序。该大小是按照一个符号的值与它下一个符号的值进行计算的。
+   –target=bfdname：指定一个目标代码的格式，而非使用系统的默认格式。
+   -u或–undefined-only：仅显示没有定义的符号(那些外部符号)。
+   –defined-only:仅显示定义的符号。
+   -l或–line-numbers：对每个符号，使用调试信息来试图找到文件名和行号。
+   -V或–version：显示nm的版本号。
+   –help：显示nm的选项。
+   
+   符号说明:对于每一个符号来说，其类型如果是小写的，则表明该符号是local的；大写则表明该符号是global(external)的。
+   A 该符号的值是绝对的，在以后的链接过程中，不允许进行改变。这样的符号值，常常出现在中断向量表中，例如用符号来表示各个中断向量函数在中断向量表中的位置。
+   B 该符号的值出现在非初始化数据段(bss)中。例如，在一个文件中定义全局static int test。则该符号test的类型为b，位于bss section中。其值表示该符号在bss段中的偏移。一般而言，bss段分配于RAM中。
+   C 该符号为common。common symbol是未初始话数据段。该符号没有包含于一个普通section中。只有在链接过程中才进行分配。符号的值表示该符号需要的字节数。例如在一个c文件中，定义int test，并且该
+     符号在别的地方会被引用，则该符号类型即为C。否则其类型为B。
+   D 该符号位于初始化数据段中。一般来说，分配到data section中。
+     例如：定义全局int baud_table[5] = {9600, 19200, 38400, 57600, 115200}，会分配到初始化数据段中。
+   G 该符号也位于初始化数据段中。主要用于small object提高访问small data object的一种方式。
+   I 该符号是对另一个符号的间接引用。
+   N 该符号是一个debugging符号。
+   R 该符号位于只读数据区。
+     例如定义全局const int test[] = {123, 123};则test就是一个只读数据区的符号。
+     值得注意的是，如果在一个函数中定义const char *test = “abc”, const char test_int = 3。使用nm都不会得到符号信息，但是字符串”abc”分配于只读存储器中，test在rodata section中，大小为4。
+   S 符号位于非初始化数据区，用于small object。
+   T 该符号位于代码区text section。
+   U 该符号在当前文件中是未定义的，即该符号的定义在别的文件中。
+     例如，当前文件调用另一个文件中定义的函数，在这个被调用的函数在当前就是未定义的；但是在定义它的文件中类型是T。但是对于全局变量来说，在定义它的文件中，其符号类型为C，在使用它的文件中，其类型为U。
+   V 该符号是一个weak object。
+   W The symbol is a weak symbol that has not been specifically tagged as a weak object symbol.
+   ? 该符号类型没有定义 
+   
+   可以用来查询某个可执行文件或者库文件是否包含某些东西：eg： nm libstdc++.6.21.so | grep "GLIB@XXX"
+5. objdump: objdump工具用来显示二进制文件的信息，就是以一种可阅读的格式让你更多地了解二进制文件可能带有的附加信息。
+   -f 显示文件头信息
+   -D 反汇编所有section (-d反汇编特定section)
+   -h 显示目标文件各个section的头部摘要信息
+   -x 显示所有可用的头信息，包括符号表、重定位入口。-x 等价于 -a -f -h -r -t 同时指定。
+   -i 显示对于 -b 或者 -m 选项可用的架构和目标格式列表。
+   -r 显示文件的重定位入口。如果和-d或者-D一起使用，重定位部分以反汇编后的格式显示出来。
+   -R 显示文件的动态重定位入口，仅仅对于动态目标文件有意义，比如某些共享库。
+   -S 尽可能反汇编出源代码，尤其当编译的时候指定了-g这种调试参数时，效果比较明显。隐含了-d参数。
+   -t 显示文件的符号表入口。类似于nm -s提供的信息
+6. readelf elf文件格式分析：ELF(Executable and Linking Format)是一种对象文件的格式，用于定义不同类型的对象文件,甚至可以查出文件大端小端模式。
+   (Object files)中都放了什么东西、以及都以什么样的格式去放这些东西。是缺省的二进制文件格式。主要包括obj文件、可执行文件、.so文件三种。
+   .text section 里装载了可执行代码；
+   .data section 里面装载了被初始化的数据；
+   .bss section 里面装载了未被初始化的数据；
+   以 .rec 打头的 sections 里面装载了重定位条目；
+   .symtab 或者 .dynsym section 里面装载了符号信息；
+   .strtab 或者 .dynstr section 里面装载了字符串信息；
+   参数说明：
+   -a –all 全部 Equivalent to: -h -l -S -s -r -d -V -A -I
+   -h –file-header 文件头 Display the ELF file header
+   -l –program-headers 程序 Display the program headers
+   –segments An alias for –program-headers
+   -S –section-headers 段头 Display the sections’ header
+   --section An alias for –section-headers
+   -e –headers 全部头 Equivalent to: -h -l -S
+   -s –syms 符号表 Display the symbol table
+   --symbols	An alias for –syms
+   -n –notes 内核注释 Display the core notes (if present)
+   -r –relocs 重定位 Display the relocations (if present)
+   -u –unwind Display the unwind info (if present)
+   -d –dynamic 动态段 Display the dynamic segment (if present)
+   -V –version-info 版本 Display the version sections (if present)
+   -A –arch-specific CPU构架 Display architecture specific information (if any).
+   -D –use-dynamic 动态段 Use the dynamic section info when displaying symbols
+   -x –hex-dump=<number> 显示 段内内容Dump the contents of section <number>
+   -w[liaprmfFso] or
+   -I –histogram Display histogram of bucket list lengths
+   -W –wide 宽行输出 Allow output width to exceed 80 characters
+   -H –help Display this information
+   -v –version Display the version number of readelf
+7. size 查看程序运行时内存占用
+   列出的信息有：
+   text段：正文段字节数大小，这是由CPU执行的机器指令部分，通常是可共享的，所以即使是频繁执行的程序(如文本编辑器、C编译器和shell等)在存储器中也只
+           需要有一个副本。通常是指用来存放程序执行代码的一块内存区域。这部分区域的大小在程序运行前就已经确定，并且内存区域通常属于只读, 某些架构
+           也允许代码段为可写，即允许修改程序。在代码段中，也有可能包含一些只读的常数变量，例如字符串常量等。
+   data段：包含静态变量和已经初始化的全局变量的数据段字节数大小，通常是指用来存放程序中已初始化的全局变量的一块内存区域。数据段属于静态内存分配。
+   bss段：Block Started by Symbol存放程序中未初始化的全局变量的字节数大小，BBS段属于静态内存分配，在程序开始执行之前，内核将此段中的数据初始化为0或空指针。
+   注：text段+data段+bss段=dec段(10进制)，hex段为16进制表示
+   C中还有栈、堆：
+   栈：又称为堆栈，自动变量以及每次函数调用是所需保存的信息都存放在此段中。是用户存放程序临时创建的局部变量，也就是说我们函数括弧“{} ”中定义的变量(但不包括
+       static 声明的变量，static 意味着在数据段中存放变量)。除此以外，在函数被调用时，其参数也会被压入发起调用的进程栈中，并且待到调用结束后，函数的返回值
+       也会被存放回栈中。由于栈的先进后出特点，所以栈特别方便用来保存/ 恢复调用现场。从这个意义上讲，我们可以把堆栈看成一个寄存、交换临时数据的内存区。
+   堆：堆是用于存放进程运行中被动态分配的内存段，它的大小并不固定，可动态扩张或缩减。当进程调用malloc 等函数分配内存时，新分配的内存就被动态添加到堆上(堆被
+       扩张)；当利用free 等函数释放内存时，被释放的内存从堆中被剔除(堆被缩减)。
+8. file 文件类型查询：也可以查看Core文件是由哪个程序生成 file core.7879
+9. strings 查询数据中的文本信息: 一个文件中包含二进制数据和文本数据，如果只需要查看其文本信息，使用这个命令就很方便；过滤掉非字符数据，将文本信息输出
+   -a : 扫描所有，不仅仅是数据段
+   -d ： 仅扫描数据段，默认也是如此
+10. fuser 显示文件使用者: 记住一切皆文件  fuser -v /dev/nvidia*
+    -a 显示所有未使用的文件
+    -i 杀死进程之前先询问
+    -k 杀死进程，通常和查询功能相配
+    -l 列出可使用的信号
+    -u 显示使用者的id
+    -v 啰嗦的输出方式
+    -w 杀死只有写权限的进程
+    -4 只搜索IPV4
+    -6 只搜索IPV6
+    -m 显示所有占用指定文件的进程
+11. xxd 十六进制显示数据：只显示文本数据
+
+######################性能优化篇
+1. nice命令调整程序的优先级
+2. top命令：分析系统瓶颈，首先得定位大致的问题出在哪里，是IO瓶颈、CPU瓶颈、内存瓶颈还是程序导致的系统问题。-u 指定用户 -p 指定进程 -i指定间隔 -n指定循环显示的次数
+3. htop命令：比top更加可靠，它的安装依赖python2.7.
+   进入htop命令后有一堆选项，直接输入指定指令即可，退出按q
+   F1：进入帮助界面
+   u：输入之后左侧会列出用户列表，然后选择某个用户回车即可观察某个用户的进程
+   H：显示或隐藏用户的进程或线程
+   
+4. 
+    
+
 
 
 
