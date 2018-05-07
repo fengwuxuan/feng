@@ -1,0 +1,105 @@
+1. python commnd：ctrl + n自动补全
+
+2. dict对象函数keys(),values() 返回的是dict_key、dict_value对象，可以支持in、迭代等操作。
+
+3. 字符串split操作默认是以空格作为分隔符，且会清除分隔出来的空格，但是如果显式的指定空格作为分隔符，那么是不会清除分割出来的空格的。
+
+4. #!/usr/bin/python是告诉操作系统执行这个脚本的时候，调用/usr/bin下的python解释器；
+
+	#!/usr/bin/env python这种用法是为了防止操作系统用户没有将python装在默认的/usr/bin路径里。当系统看到这一行的时候，首先会到env设置里查找python的安装路径，再调用对应路径下的解释器程序完成操作。
+   #!/usr/bin/python相当于写死了python路径;
+   #!/usr/bin/env python会去环境设置寻找python目录,推荐这种写法
+   
+5. 指定编码格式的写法："coding[:=]\s*([-\w.]+)" 
+   因此 #coding=utf-8  == #coding:utf-8 == #-*- coding:utf-8 -*-
+   
+6. 命令行中执行python语句：python -c command [arg] ... 一般用单引号将command括起来，避免空格的问题
+
+7. 不带return的函数也有返回值：None
+
+8. *args vs **kwrgs: 首先其实并不是必须写成*args 和**kwargs。 只有变量前面的 *(星号)才是必须的. 你也可以写成*var 和**vars. 而写成*args 和**kwargs只是一个通俗的命名约定。这两个是python中的可变参数。*args表示任何多个无名参数，它是一个tuple；**kwargs表示关键字参数，它是一个dict。并且同时使用*args和**kwargs时，必须*args参数列要在**kwargs前。
+	*args：*args 是用来发送一个非键值对的可变数量的参数列表给一个函数.如下为例子
+      def test_var_args(f_arg, *args):
+         pass
+      test_var_args('yasoob', 'python', 'eggs', 'test')
+      那么后面三个参数即为*args。
+   **kwargs：很明显允许你将不定长度的键值对, 作为参数传递给一个函数。 如果你想要在一个函数里处理带名字的参数, 你应该使用**kwargs。
+      def greet_me(**kwargs):
+         pass
+      greet_me(name="yasoob")
+   另外如果需要传递多个参数时，为了避免书写多个参数可以选择传入一个参数包：
+      def test（augs）:
+         a,b,c,d,e = augs
+      test(zip(1,2,3,4,5))
+9. 参数列表的分拆：实际就是*args和**kwargs的特殊情况，如果传入的是一个列表或者tuple，需要拆出独立的参数，前面加*即可，同理键值对加上**，例子如下：
+   args = [3, 6]
+   list(range(*args))
+   
+   d = {"voltage": "four million", "state": "bleedin' demised", "action": "VOOM"}
+   func(**d)
+   
+10. 文档字符串、多行注释、多行字符串
+    文档字符串：用于函数、类、模块的帮助文档，直接使用"""doc"""形式，模块用在开头，类和函数用在函数声明之后。
+    多行注释：用法和文档字符串一致，如果需要注释多行，那么就直接用"""code"""即可
+    多行字符串：当字符串一行写不下，需要写在多行时可以用多行字符串，形式和前两者一致，但是应该注意以下几点：
+    1）其不能单独存在，否则会被当成注释或者文档，需作为参数或者变量赋值
+    2）换行时需要加上\，否则会自动加上\n，此外\与字符串之间的空格会被当成字符处理。
+    
+11. 函数注解：是关于用户自定义的函数的完全可选的、随意的元数据信息。无论 Python 本身或者标准库中都没有使用函数注解；第三方的项目是自由地为文档，类型检查，以及其它用途选择函数注解。注解是以字典形式存储在函数的 __annotations__ 属性中，对函数的其它部分没有任何影响。如下是带有函数注解的函数定义方式。但是貌似在python3.5中已经不这么写了
+    def f(ham: 42, eggs: int = 'spam') -> "Nothing to see here":
+
+12. PEP8代码推荐风格：
+
+13. 数据结构部分：(x代表元素、L表示列表、i表示索引位置、python中函数参数内的[]有时表示是可选的意思，比如pop,k表示key，v表示value，im表示item)
+   1）list列表：
+      （1）原理：基于PyListObject实现，列表支持元素的插入、删除、更新操作，因此PyListObject是一个变长对象（列表的长度随着元素的增加和删除而变长和变短），同时它还是一个可变对象（列表中的元素根据列表的操作而发生变化，内存大小动态的变化），PyListObject的定义：
+         typedef struct {
+            # 列表对象引用计数
+            int ob_refcnt;  
+            # 列表类型对象,所有对象都继承于同一个基类，列表里存放指针就好，然后利用meta数据得到类型。这就是它支持不同对象的原理。
+            struct _typeobject *ob_type;
+            # 列表元素的长度
+            int ob_size; /* Number of items in variable part */
+            # 真正存放列表元素容器的指针，list[0] 就是 ob_item[0],和C++的vector原理一样，维护一个数组，当长度不够的时候扩充长度。
+            PyObject **ob_item;
+            # 当前列表可容纳的元素大小
+            Py_ssize_t allocated;
+         } PyListObject;
+         ob_item是真正存放列表元素容器的指针，专门有一块内存用来存储列表元素，这块内存的大小就是allocated所能容纳的空间。
+      （2）方法：append(x)、pop([i])、extend(L)(等于+)、copy（浅拷贝，等于a[:]）、clear、insert(i,x)、remove(x)、sort()、index(x)、count(x)、reverse（），值得注意的是insert、sort、reverse这些函数返回的是None，可能对别的语言来说会返回一个可变的对象（变化后的对象），但是python中对可变对象来说是不返回的，这是一个统一的设计原则。
+      （3）作为堆栈使用：从append和pop来看，它完全可以当做堆栈来做，它维护的是一个数组，所以在末端插入删除是很方便的
+      （4）作为队列使用：可以是可以，但是效率比较差，毕竟插入还好说，但是出队后要将后面的元素迁移，效率较差，真要使用可以采用collections里面的队列。
+      （5）列表推导式：可以用list(推导式)或[推导式的形式]
+   2）del语句：删除对象，可以删除列表、dict等支持item deletion的数据结构，注意tuple是不支持的，使用del a[0], del b[key],可以帮助清空整个列表或者直接删除列表。
+   3) tuple元组：python中元组可以不加括号，只要是逗号分隔的多个元素都可以被当成是一个元组，即使只有一个元素也必须要加逗号，不然分不清是单个变量还是元组，tuple是不可变的，他不支持增删，这也是为什么它不支持del的原因。另外他是无序的，也不支持排序。
+      （1）原理：可以看成是特殊的list
+      （2）方法：由于不支持增删，因此只有两个函数count、index
+      （3）与list相比：虽然是不可变的，没有list灵活，但是有如下优点：
+         创建：创建的开销比list小十倍，遍历的速度差不多
+         空间：tuple所用空间更小
+         可哈希：tuple是可哈希的，因此可以作为dict的key，但是list不行
+         安全性：由于不可变，意味着多线程安全，不需要锁，不担心被恶意修改或者不小心修改。
+         此外tuple类型对于Python自身来说是非常重要的数据类型，比如说函数调用，实际上会将顺序传入的参数先组成一个tuple；多返回值也是靠返回一个tuple来实现的。
+   4）set集合：是一个无序不重复元素的集，与dict（有序重复覆盖）不同，所以多用于关系测试和消除重复元素，不支持索引操作的哦。支持迭代
+      （1）原理：python中的set基于哈希表实现，存取时间可看做O(1)，但是没有办法高效的完成顺序相关的操作(比如找前驱后继，最大最小值等等)，所以认为是“无序”的。而其他语言用平衡二叉树实现的set(如c++中用红黑树实现的set和python中的orderedset)，所以有前驱和后继，是有序的。python的实现有点在于查找速度快。
+      （2）方法：add（x）(添加元素)、clear、copy、difference（求差集）、difference_update(求差集并更新为自己)、intersection(交集)、union(并集)及update操作、discard(x)(删除元素)、pop、remove（x）、issubset、isdisjoint
+   5）dict字典：可以看做是无序的键值对集合，实现方式与dict是一致的。
+      （1）原理：字典中的一个key-value键值对元素称为entry（也叫做slots），对应到Python内部是PyDictEntry，PyDictObject就是PyDictEntry的集合。PyDictEntry的定义是：
+         typedef struct {
+          Py_ssize_t me_hash;
+          PyObject *me_key;
+          PyObject *me_value;
+         } PyDictEntry;
+       me_hash用于缓存me_key的哈希值，防止每次查询时都要计算哈希值，entry有三种状态：unused、active、dummy（删除元素后由active变成dummy）
+      （2）方法：clear、copy、fromkeys、get(k)、has_key（k）、items、iteritems、iterkeys、itervalues（返回迭代器）、keys、pop（key）、popitem、setdefault（key）、update、values、viewitems、viewkeys、viewvalues（返回dict_key/value/item对象，不支持往下的操作）。
+   6）私有方法：
+14. 循环技巧
+   1）在字典中循环时，关键字和对应的值可以使用 items() 方法同时解读出来:
+   2）在序列中循环时，索引位置和对应值可以使用 enumerate() 函数同时得到，字典和集合不行哦
+   3）同时循环两个或更多的序列，可以使用 zip() 整体打包：for q, a in zip(questions, answers):
+15. 模块方法：
+
+
+
+
+
