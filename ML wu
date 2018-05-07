@@ -3,4 +3,5 @@
   2）线性回归的定义与Loss function
      假设：H(x) = b + w*x
      参数：w b
-     cost function：<a href="https://www.codecogs.com/eqnedit.php?latex=J(w,b)&space;=&space;\frac{1}{2}\sum_{i=1}^{n}\left&space;(&space;H(x^{(i)})-y^{(i)}&space;\right&space;)^{2}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?J(w,b)&space;=&space;\frac{1}{2}\sum_{i=1}^{n}\left&space;(&space;H(x^{(i)})-y^{(i)}&space;\right&space;)^{2}" title="J(w,b) = \frac{1}{2}\sum_{i=1}^{n}\left ( H(x^{(i)})-y^{(i)} \right )^{2}" /></a>
+     cost function：
+2. 
