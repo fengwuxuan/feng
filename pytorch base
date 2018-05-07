@@ -1,0 +1,89 @@
+安装操作：更换pip源conda源到清华镜像，然后采用pip安装而不是conda
+
+一、torch tensor
+
+1. 注意查询操作列表
+2. 各种操作若加上_就是它的in-place版本，但是并不会所有的都有。
+3. Torch中的Tensor是可以直接打印的，debug要比TensorFlow简单，网络中的都是autograd.variable，获得值要用var.data.Tensor的shape采用size()来获取，可以指定某一维。
+
+二、torch.nn
+
+1. torch.nn.parameter():是Variable的子类，不同的是Variable可以被volatile，默认是requires_grad=false，而parameter与之相反。parameter一般是与module相结合。
+2. module是所有网络都必须继承的基类，他有一些重要的方法：add_module、children、cpu（模型和参数到cpu）、cuda（模型和参数到GPU）、eval（主要有dropout、batchnorm时才有影响，相当于TensorFlow的is_training参数）、forward（必须实现，自动推导）、load_state_dict、modules、named_children、named_modules、paremeters、state_dict、train、zero_grad
+3. nn.Sequential，是一个时序容器，一般是顺序传入一堆操作对象（卷积、pooling等），也可以先构建一个orderDict传入
+4. nn.ModuleList(module):将module的submodules保存在一个list里面。同样的还有nn.ParameterList(Parameters),也是讲submodules保存在一个list里面。都有append、extend操作，和普通list操作是一样的。
+5. convnd、convtransposend（n表示1、2、3），对于pooling也提供了unpool、Adaptive pool操作，重要的Adaptive pool，类似于TensorFlow slim net中最后自适应修改pooling大小的操作。这里可以指定输出尺寸，不管输入尺寸多大，都会自己调整pooling框的大小。
+6. 非线性激活函数：ReLu、ReLu6、Elu、PReLu、LeakReLu、Threshold、HardTanh、sigmoid、Tanh、LogSigmoid、softplus、softshrink、softsign、softmin、softmax、LogSoftmax。
+7. normalization layers：BN（1-3d）
+8. RNN layers：RNN、LSTM、GRU以及对应的ceil
+9. 线性层：Linear、Dropout（1-3d）
+10. 距离计算：PairwiseDistance:批量计算向量v1\v2之间的距离，可以设定范数
+11. loss function：
+    L1Loss：输出与真实值之差的绝对值的平均值，感觉适用于二分类
+    MSELoss：输出与真实值之间均方误差（差的平方的均值）
+    CrossEntropyLoss :将LogSoftmax与NLLLoss几种到一起，适用于多分类
+    NLLLoss：输入是一个2D的概率Tensor，可以通过在最后一层加LogSoftmax来获得类别的log-probabilities，如果您不想增加一个额外层的话，您可以使用CrossEntropyLoss，他还有NLLLoss2db版本。
+  SmoothL1Loss：平滑版的L1Loss，多见于物体检测，对异常点的敏感性不如MSE，但是有效的防止了梯度爆炸。
+  SoftMarginLoss：创建一个标准，用来优化2分类的logistic loss。
+ 
+  KLDivLoss：计算KL散度损失，KL散度常用来描述两个分布的距离，并在输出分布的空间上执行直接回归是有用的。
+    BCELoss:用于计算二进制的交叉熵损失，这个用于计算 auto-encoder 的 reconstruction error
+  HingeEmbeddingLoss：度量两个tensor是否相似，典型是用在学习非线性 embedding或者半监督学习中
+  MultiLabelMarginLoss：计算多标签的hinge loss
+  MultiMarginLoss：计算多分类的hinge loss
+    CosineEmbeddingLoss：使用cosine距离计算两个输入是否相似
+    MultiLabelSoftMarginLoss：创建一个标准，基于输入x和目标y的 max-entropy，优化多标签 one-versus-all 的损失，即一对多分类器的损失。
+12. 视觉层：
+    PixelShuffle将shape为$[N, C*r^2, H, W]的Tensor重新排列为shape为[N, C, H*r, W*r]的Tensor。 当使用stride=1/r 的sub-pixel卷积的时候，这个方法是非常有用的。
+  UpsamplingNearest2d、UpsamplingBilinear2d
+13. 多GPU：torch.nn.DataParallel，返回的是一个类对象，一般会用torch.nn.DataParallel（）.cuda()，此容器通过将mini-batch划分到不同的设备上来实现给定module的并行。在forward过程中，module会在每个设备上都复制一遍，每个副本都会处理部分输入。在backward过程中，副本上的梯度会累加到原始module上。batch的大小应该大于所使用的GPU的数量。还应当是GPU个数的整数倍，这样划分出来的每一块都会有相同的样本数量。除了Tensor，任何位置参数和关键字参数都可以传到DataParallel中。所有的变量会通过指定的dim来划分（默认值为0）。原始类型将会被广播，但是所有的其它类型都会被浅复制。所以如果在模型的forward过程中写入的话，将会被损坏。
+14. 工具函数：clip_grad_norm、PackedSequence
+15. Torch.nn.functional：nn的函数版本
+
+三、Torch optimzer、scheduler
+
+1. 为了使用torch.optim，你需要构建一个optimizer对象。这个对象能够保持当前参数状态并基于计算得到的梯度进行参数更新。使用时常常先optimzer.zero_grad清空梯度，然后使用step进行单次优化，如需多次则需给step传入闭包进行优化。step一般是需要在loss.backward操作调用之后。optimizer的状态是可以用load_state_dict加载的，也可以用state_dict方式返回optimizer的状态。
+支持的优化器有：
+    Adagrad
+    Adam：
+    SparseAdam：
+    Adamax
+    ASGD：
+    LBFGS：
+    RMSprop：
+    Rprop：
+    SGD：
+    Adadelta：
+2. lr_scheduler：调整学习率，使用也是用step，记住只能针对epoch。
+    LamdaLR：提供Lamda函数自己调整
+    StepLR：步进，支持多个步
+    multiStepLR：和step实际是重叠的
+    ExponentialLR：
+    ConsineAnnealingLR：
+    ReduceLROnPlateau：当度量标准不再提升时会降低学习率
+    
+ 四、 torch.utils
+ 1. ffi:torch扩展API，利用torch.nn.ffi.create_extension导入包，参数name：包名，headers：头文件列表，sources：需要编译的文件，verbose：设置为False就不会打印输出、with_cuda设置为true以使用CUDA头文件编译，package设置为True以在程序包模式下构建，relative_to：构建文件的路径
+2. data:
+    torch.utils.data.Dataset:所有数据集的基类，用户必须重载__len__和__getitem__，前者提供了数据集的大小，后者支持整数索引，范围从0到len(self)。 
+    torch.utils.data.TensorDataset(data_tensor, target_tensor):包装数据和目标张量的数据集。通过沿着第一个维度索引两个张量来恢复每个样本。
+    torch.utils.data.DataLoader:数据加载器。组合数据集和采样器，并在数据集上提供单进程或多进程迭代器。
+    torch.utils.data.sampler.SequentialSampler：顺序采样器，还有随即、子集随即采样器、权重随机采样器
+3. model_zoo：torch.utils.model_zoo.load_url(url, model_dir=None)给定url加载Torch序列化对象，若对象已经存在于model_dir则将被反序列化并返回，model_dir 的默认值为$TORCH_HOME/models，其中$TORCH_HOME默认为~/.torch。可以使用$TORCH_MODEL_ZOO环境变量来覆盖默认目录。
+
+五、torchvision
+
+1、torchvision包含了目前流行的数据集，模型结构和常用的图片转换工具。
+2、datasets：包含如下数据集API接口
+    MNIST
+    COCO（用于图像标注和目标检测）(Captioning and Detection)
+    LSUN Classification
+    ImageFolder
+    Imagenet-12
+    CIFAR10 and CIFAR100
+    STL10 
+3、models：包含常见主流的模型。 
+4、transform：主要是对PIL  Image进行转换 
+    torchvision.transforms.Compose(transforms)：组合多个transform进行变换
+    torchvision.transforms.CenterCrop(size)：将给定的图片进行中心切割，得到指定大小的图片
+    还有其他随即切割等不同操作。
