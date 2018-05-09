@@ -1,44 +1,77 @@
 安装操作：更换pip源conda源到清华镜像，然后采用pip安装而不是conda
 
-一、torch tensor
+一、torch
 
 1. 注意查询操作列表
 2. 各种操作若加上_就是它的in-place版本，但是并不会所有的都有。
 3. Torch中的Tensor是可以直接打印的，debug要比TensorFlow简单，网络中的都是autograd.variable，获得值要用var.data.Tensor的shape采用size()来获取，可以指定某一维。
+4. Tensors：包括创建操作、切片索引等操作，以及判断是否是tensor、是否是storage对象。
+5. Random Sampling：包括种子及其他随机数、各种分布操作。
+6. 序列化与反序列化：save与load，默认利用的是python的pickle模块，也可以选择。
+7. 并行：torch.get_num_threads() torch.set_num_threads(int)，获取及设置CPU openMP 线程的数目
+8. 局部抑制梯度计算：torch的上下文管理器torch.no_grad(), torch.enable_grad(), and torch.set_grad_enabled()具体参见autograd模块
+9. 数学计算库
+10. class Tensor：具有相应的计算函数、创建函数（new_ones\new_zeros）,比较重要的函数有cpu()、cuda()（将自身拷贝到cpu或者gpu）、device、iscuda()、ispinned（）、is_contiguous()
+    属性：dtype、device、layout（tensor的内存分布）
+11. torch.sparse:该模块用于产生稀疏矩阵
+12. torch.storage：每个tensor都有自己对应的storage，它是一维连续的
 
-二、torch.nn
+二、torch.cuda
+1. 首先是stream、blas、device的管理
+2. init初始化、is_avaliable检查是否可用、获取可用空间大小、synchronize()同步所有核
+3. 随机生成器
+4. communication collectives
+5. stream 与 events
+6. memory manager
+7. NVIDIA tools extension
 
-1. torch.nn.parameter():是Variable的子类，不同的是Variable可以被volatile，默认是requires_grad=false，而parameter与之相反。parameter一般是与module相结合。
-2. module是所有网络都必须继承的基类，他有一些重要的方法：add_module、children、cpu（模型和参数到cpu）、cuda（模型和参数到GPU）、eval（主要有dropout、batchnorm时才有影响，相当于TensorFlow的is_training参数）、forward（必须实现，自动推导）、load_state_dict、modules、named_children、named_modules、paremeters、state_dict、train、zero_grad
-3. nn.Sequential，是一个时序容器，一般是顺序传入一堆操作对象（卷积、pooling等），也可以先构建一个orderDict传入
-4. nn.ModuleList(module):将module的submodules保存在一个list里面。同样的还有nn.ParameterList(Parameters),也是讲submodules保存在一个list里面。都有append、extend操作，和普通list操作是一样的。
-5. convnd、convtransposend（n表示1、2、3），对于pooling也提供了unpool、Adaptive pool操作，重要的Adaptive pool，类似于TensorFlow slim net中最后自适应修改pooling大小的操作。这里可以指定输出尺寸，不管输入尺寸多大，都会自己调整pooling框的大小。
-6. 非线性激活函数：ReLu、ReLu6、Elu、PReLu、LeakReLu、Threshold、HardTanh、sigmoid、Tanh、LogSigmoid、softplus、softshrink、softsign、softmin、softmax、LogSoftmax。
-7. normalization layers：BN（1-3d）
-8. RNN layers：RNN、LSTM、GRU以及对应的ceil
-9. 线性层：Linear、Dropout（1-3d）
-10. 距离计算：PairwiseDistance:批量计算向量v1\v2之间的距离，可以设定范数
+三、torch.nn
+
+1. 参数：
+   torch.nn.parameter():是Variable的子类，不同的是Variable可以被volatile，默认是requires_grad=false，而parameter与之相反。parameter一般是与module相结合。构造时要两个参数data（一个tensor，可以为None）、requires_grad（默认是True）
+2. 容器：
+   1）module是所有网络都必须继承的基类，他有一些重要的方法：add_module、children、cpu（模型和参数到cpu）、cuda（模型和参数到GPU）、eval（主要有dropout、batchnorm时才有影响，相当于TensorFlow的is_training参数）、forward（必须实现，自动推导）、load_state_dict、modules（返回整个模块的子模块）、named_children、named_modules、paremeters、state_dict、train（设置模块模式为training）、zero_grad
+   2）nn.Sequential，是一个时序容器，一般是顺序传入一堆操作对象（卷积、pooling等），也可以先构建一个orderDict传入
+   3）nn.ModuleList(module):将module的submodules保存在一个list里面。同样的还有nn.ParameterList(Parameters),也是讲submodules保存在一个list里面。都有append、extend操作，和普通list操作是一样的。
+3. convnd、convtransposend（n表示1、2、3），对于pooling也提供了unpool、Adaptive pool操作，重要的Adaptive pool，类似于TensorFlow slim net中最后自适应修改pooling大小的操作。这里可以指定输出尺寸，不管输入尺寸多大，都会自己调整pooling框的大小。卷积支持dialtion、group
+4. padding layers：
+   1）ReflectionPad: 以边界为轴，映射padding
+   2）ReplicationPad：复制边界
+   3）ZerosPad：边界pad0
+   4）ConstantPad：pad指定的常数
+5. 非线性激活函数：ReLu、ReLu6、Elu、PReLu、LeakReLu、Threshold、HardTanh、sigmoid、Tanh、LogSigmoid、softplus、softshrink、softsign、softmin、softmax、LogSoftmax。
+6. normalization layers：BN（1-3d）、InstanceNorm（1-3d）、layerNorm、LocalResponseNorm
+7. RNN layers：RNN、LSTM、GRU以及对应的ceil
+8. 线性层：Linear、Dropout（1-3d）、Bilinear、AlphaDropout
+9. Saprse Layer:
+10. 距离计算：PairwiseDistance:批量计算向量v1\v2之间的距离，可以设定范数,cosin计算
 11. loss function：
     L1Loss：输出与真实值之差的绝对值的平均值，感觉适用于二分类
     MSELoss：输出与真实值之间均方误差（差的平方的均值）
     CrossEntropyLoss :将LogSoftmax与NLLLoss几种到一起，适用于多分类
-    NLLLoss：输入是一个2D的概率Tensor，可以通过在最后一层加LogSoftmax来获得类别的log-probabilities，如果您不想增加一个额外层的话，您可以使用CrossEntropyLoss，他还有NLLLoss2db版本。
-  SmoothL1Loss：平滑版的L1Loss，多见于物体检测，对异常点的敏感性不如MSE，但是有效的防止了梯度爆炸。
-  SoftMarginLoss：创建一个标准，用来优化2分类的logistic loss。
- 
-  KLDivLoss：计算KL散度损失，KL散度常用来描述两个分布的距离，并在输出分布的空间上执行直接回归是有用的。
+    NLLLoss：输入是一个2D的概率Tensor，可以通过在最后一层加LogSoftmax来获得类别的log-probabilities，如果您不想增加一个额外层的话，您可以使用         CrossEntropyLoss，他还有NLLLoss2db版本。
+    SmoothL1Loss：平滑版的L1Loss，多见于物体检测，对异常点的敏感性不如MSE，但是有效的防止了梯度爆炸。
+    SoftMarginLoss：创建一个标准，用来优化2分类的logistic loss。 
+    KLDivLoss：计算KL散度损失，KL散度常用来描述两个分布的距离，并在输出分布的空间上执行直接回归是有用的。
     BCELoss:用于计算二进制的交叉熵损失，这个用于计算 auto-encoder 的 reconstruction error
-  HingeEmbeddingLoss：度量两个tensor是否相似，典型是用在学习非线性 embedding或者半监督学习中
-  MultiLabelMarginLoss：计算多标签的hinge loss
-  MultiMarginLoss：计算多分类的hinge loss
+    HingeEmbeddingLoss：度量两个tensor是否相似，典型是用在学习非线性 embedding或者半监督学习中
+    MultiLabelMarginLoss：计算多标签的hinge loss
+    MultiMarginLoss：计算多分类的hinge loss
     CosineEmbeddingLoss：使用cosine距离计算两个输入是否相似
     MultiLabelSoftMarginLoss：创建一个标准，基于输入x和目标y的 max-entropy，优化多标签 one-versus-all 的损失，即一对多分类器的损失。
 12. 视觉层：
     PixelShuffle将shape为$[N, C*r^2, H, W]的Tensor重新排列为shape为[N, C, H*r, W*r]的Tensor。 当使用stride=1/r 的sub-pixel卷积的时候，这个方法是非常有用的。
-  UpsamplingNearest2d、UpsamplingBilinear2d
+    UpsamplingNearest2d、UpsamplingBilinear2d
 13. 多GPU：torch.nn.DataParallel，返回的是一个类对象，一般会用torch.nn.DataParallel（）.cuda()，此容器通过将mini-batch划分到不同的设备上来实现给定module的并行。在forward过程中，module会在每个设备上都复制一遍，每个副本都会处理部分输入。在backward过程中，副本上的梯度会累加到原始module上。batch的大小应该大于所使用的GPU的数量。还应当是GPU个数的整数倍，这样划分出来的每一块都会有相同的样本数量。除了Tensor，任何位置参数和关键字参数都可以传到DataParallel中。所有的变量会通过指定的dim来划分（默认值为0）。原始类型将会被广播，但是所有的其它类型都会被浅复制。所以如果在模型的forward过程中写入的话，将会被损坏。
-14. 工具函数：clip_grad_norm、PackedSequence
-15. Torch.nn.functional：nn的函数版本
+    torch.nn.parallel.DistributedDataParallel：分布式的并行
+14. 工具函数：
+    torch.nn.utils.clip_grad_normparameters, max_norm, norm_type=2)（梯度归一化之后进行clip）
+    torch.nn.utils.rnn.PackedSequence（还有其他函数）
+    torch.nn.utils.clip_grad_value_(parameters, clip_value)：针对梯度值进行clip
+    torch.nn.utils.weight_norm(module, name='weight', dim=0)：对参数归一化
+    torch.nn.utils.remove_weight_norm(module, name='weight')：移除归一化的参数
+15. torch.nn.functional：nn的函数版本,其中torch.nn.parallel.data_parallel(module, inputs, device_ids=None, output_device=None, dim=0, module_kwargs=None)是数据并行的函数版本。
+16. torch.nn.init:主要负责一些分布的初始化。
 
 三、Torch optimzer、scheduler
 
@@ -54,6 +87,23 @@
     Rprop：
     SGD：
     Adadelta：
+ 方法有：
+    add_param_group(param_group)
+    load_state_dict(state_dict)：state_dict必须是state_dict()函数返回的对象。
+    state_dict()
+    step(closure)
+    zero_grad()：清空所有要优化的tensor，然后才能执行loss.backward()、optimier.step()
+ 构建优化器：
+    构建优化器需要传入params，设置基础的学习率以及其他的参数，其中params的形式是这样的：
+    {"params":params list, "lr_mult":int,"decay_mult":int,"name":str},这是一条，多个构成一个group。
+    其中比较关键的是params list的获取，一般的操作是遍历module的named_parameters、parameters函数结果，将其加入到一个list中。
+    使用方式：
+    out = model(input)
+    loss = certion(out,labels)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    
 2. lr_scheduler：调整学习率，使用也是用step，记住只能针对epoch。
     LamdaLR：提供Lamda函数自己调整
     StepLR：步进，支持多个步
@@ -61,18 +111,80 @@
     ExponentialLR：
     ConsineAnnealingLR：
     ReduceLROnPlateau：当度量标准不再提升时会降低学习率
+    lr_scheduler的使用主要是在每个epoch后，利用step进行调整，特别的只有ReduceLROnPlateau这个，它的step需要传入valloss。
     
- 四、 torch.utils
- 1. ffi:torch扩展API，利用torch.nn.ffi.create_extension导入包，参数name：包名，headers：头文件列表，sources：需要编译的文件，verbose：设置为False就不会打印输出、with_cuda设置为true以使用CUDA头文件编译，package设置为True以在程序包模式下构建，relative_to：构建文件的路径
+3. 调整学习率：
+   for epoch in range(n):
+       adjust_func or lr_scheduler.step()
+       train()
+       val()
+       注意：对于ReduceLROnPlateau调整学习率只能放在val之后。
+       adjust_func类似TRN对optimizer.params_groups进行遍历调整。
+
+四、torch.autograd
+1. torch.autograd.backward(tensors, grad_tensors=None, retain_graph=None, create_graph=False, grad_variables=None)：计算所给tensor的梯度和，并将其写入graph。
+2. torch.autograd.grad(outputs, inputs, grad_outputs=None, retain_graph=None, create_graph=False, only_inputs=True, allow_unused=False)：计算并返回所给inputs的梯度，将其放入outputs。
+3. torch.autograd.no_grad：上下文管理器，用于停止某块代码的自动求导，使用方法：with 。。。
+4. torch.autograd.enable_grad：与上相反开启求导，如果它被放在no_grad里面，则no_grad会丧失作用
+5. torch.autograd.set_grad_enabled(mode)：mode为true开启，否则关闭，也是一个上下文管理器
+6. 注意autograd阻止inplace的操作哦。
+7. 在0.4版本中，variable已经与tensor合并，所以它并不是求grad所必须的，autograd自动的使tensor变成require_grad为true。主要变化如下：
+   Variable(tensor)与Variable(tensor, requires_grad)仍然工作，但是返回的是tensor而不是variable。
+   var.data 与 tensor.data一样
+   var.backward(), var.detach(), var.register_hook()这些函数tensor也能使用
+   其他版本变化：
+   零维张量
+   tensor全面支持高级索引与快速傅里叶变化
+   神经网络中计算时的存储权衡、bottleneck-识别代码中热点（hotspots）的工具
+   增加torch.distributions模块，支持24中概率分布、增加cdf、方差、信息熵、困惑度等
+   分布式训练：易于使用的 Launcher utility、NCCL2 后端
+   C++扩展
+   windows扩展
+   ONNX改进与支持
+8. tensor 自动求导的函数：
+   backward（gradient=None, retain_graph=None, create_graph=False）  使用：loss.backward
+   detach()：创建一个新的tensor，从当前graph分离，它永远不会加入梯度计算，更加便于debug
+   detach_()：将tensor从graph分离为一个叶子，且不能view。
+   register_hook(hook)：hook其实是对梯度的一个操作，可以是函数对象或者lamda，然后tensor每次梯度计算时会调用该hook
+   retain_grad()
+9. torch.autograd.Function：自动求导函数的基类，可以利用它来构建自己的函数，实现forward和backward。
+10. 亮点是profiler：
+   torch.autograd.profiler.profile(enabled=True, use_cuda=False)：use_cuda将会多花费4us开启cuda event来度量cuda的时间。它是一个上下文管理器，使用方法：with ... as prof: some ops ... print(prof)即可获得结果
+   也可以用export_chrome_trace(path)获得与tensorflow tfprofiler相似的结果，利用chrome可以检查模型的运行情况。
+   key_averages()：根据函数event的key来求average
+   table(sort_by=None)：输出event的列表
+   total_average()：求所有event的average
+   torch.autograd.profiler.emit_nvtx(enabled=True)：使用NVTX的nvprof，torch.autograd.profiler.load_nvprof(path)
+   
+五、torch.distributions模块，支持24中概率分布、增加cdf、方差、信息熵、困惑度等
+
+六、torch.multiprocessing：是对multiprocessing的包装。和原库是很相似的，因此pytorch没有提供更多的文档，参考原库的文档即可。需要注意的是python的multiprocessing在挂掉之后有时会出现清理子进程失败的情况，因此会出现各种泄漏，因此发现此类问题时需要关注是不是有这种情况。
+    torch.multiprocessing.get_all_sharing_strategies()：返回当前系统支持的共享策略
+    torch.multiprocessing.get_sharing_strategy()：返回当前cpu tensor使用的共享策略
+    torch.multiprocessing.set_sharing_strategy(new_strategy)：设置共享策略，参数以字符串的形式
+    对于cuda共享，目前仅仅支持python3，python2仅仅支持subprocess，因此不支持。
+    
+七、torch.distributed：分布式训练库，利用类似MPI的接口来组织。支持的后端有tcp、mpi、gloo、nccl，但是他们各自对cpu、GPU的支持不同，具体参见文档
+   1. 数据处理：torch.nn.parallel.DistributedDataParallel()
+   2. 初始化：
+      torch.distributed.init_process_group(backend, init_method='env://', **kwargs)：初始化distributed包，
+
+八、 torch.utils
+1. ffi:torch扩展API，利用torch.nn.ffi.create_extension导入包，参数name：包名，headers：头文件列表，sources：需要编译的文件，verbose：设置为False就不会打印输出、with_cuda设置为true以使用CUDA头文件编译，package设置为True以在程序包模式下构建，relative_to：构建文件的路径
 2. data:
     torch.utils.data.Dataset:所有数据集的基类，用户必须重载__len__和__getitem__，前者提供了数据集的大小，后者支持整数索引，范围从0到len(self)。 
     torch.utils.data.TensorDataset(data_tensor, target_tensor):包装数据和目标张量的数据集。通过沿着第一个维度索引两个张量来恢复每个样本。
     torch.utils.data.DataLoader:数据加载器。组合数据集和采样器，并在数据集上提供单进程或多进程迭代器。
     torch.utils.data.sampler.SequentialSampler：顺序采样器，还有随即、子集随即采样器、权重随机采样器
 3. model_zoo：torch.utils.model_zoo.load_url(url, model_dir=None)给定url加载Torch序列化对象，若对象已经存在于model_dir则将被反序列化并返回，model_dir 的默认值为$TORCH_HOME/models，其中$TORCH_HOME默认为~/.torch。可以使用$TORCH_MODEL_ZOO环境变量来覆盖默认目录。
+4. torch.utils.bottleneck：提供的一个工具，用于检测脚本的瓶颈，主要是使用Python profiler 和 PyTorch’s autograd profiler来统计运行时间，注意脚本的运行时间应该是有限的，python -m torch.utils.bottleneck /path/to/source/script.py [args]， args是script.py的参数。
+   注意：cuda的核实异步的，因此统计信息可能会有些问题，
+5. torch.utils.checkpoint：
+   torch.utils.checkpoint.checkpoint(function, *args)：模型或者其部分的检查点，新的 checkpoint 容器允许你存储反向传播过程所需输出的子集。如果缺少输出（为了节省内存），checkpoint 容器将重新计算来自最近检查点的中间输出，以便减少内存使用量（随着计算时间的增加）。
+   对于循环模块，提供了torch.utils.checkpoint.checkpoint_sequential。
+6. torch.utils.cpp_extension: C++扩展模块，支持导入C++源文件、头文件、cu文件、运行库
 
-五、torchvision
-
+九、torchvision
 1、torchvision包含了目前流行的数据集，模型结构和常用的图片转换工具。
 2、datasets：包含如下数据集API接口
     MNIST
@@ -86,4 +198,6 @@
 4、transform：主要是对PIL  Image进行转换 
     torchvision.transforms.Compose(transforms)：组合多个transform进行变换
     torchvision.transforms.CenterCrop(size)：将给定的图片进行中心切割，得到指定大小的图片
-    还有其他随即切割等不同操作。
+    还有其他随即切割等不同操作。
+
+十、torch.onnx
