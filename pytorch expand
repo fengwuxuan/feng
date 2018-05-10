@@ -1,9 +1,1 @@
-1. GPU训练模型并行时：model = torch.nn.DataParallel(model, device_ids=args.gpus).cuda()，将模型参数及buffer都拷贝到GPU，也可以用.cpu()拷贝到CPU上。
-2. torch.load 和 tf.save是利用python的pickle模块工作的，所以比较方便快捷。
-3. 对于深度学习训练，开启cudnn会快很多，速度比tensorflow快15%，开启方法torch.backends.cudnn.benchmark=True,默认是false，小网络上即使不开启也比tensorflow快。
-4. 对于dataset，自己可以继承torch.utils.data.Dataset实现自己的类，也可以基于torch.utils.data.TensorDataset、torch.utils.data.ConcatDataset制作，最后利用torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, sampler=None, batch_sampler=None, num_workers=0, collate_fn=<function default_collate>, pin_memory=False, drop_last=False, timeout=0, worker_init_fn=None)进行载入即可，需要注意以下几点：
-   如果选择sampler，那么shuffle必须是false。torch中定义了各种sampler，如果想自己实现继承基类torch.utils.data.sampler.Sampler即可。
-   pin_memory是保留内存的意思，如果为true，那么会将数据拷到cuda的pin_memory中。
-   drop_last:去掉最后不满一个batch的部分，很有用的一个参数
-5. 学习率调整：两种方法
-   1）自己在代码中进行调整，类似TRN里面的策略，优点是方便调整
+
