@@ -1,0 +1,2 @@
+1. caffe2编译：../../lib/libcaffe2.so: undefined reference to `cv::DualTVL1OpticalFlow::create(double, double, double, int, int, double, int, int, double, double, int, bool)'
+   解决方案：在caffe2/cmake文件夹修改Dependencies.cmake文件：find_package(OpenCV 3 QUIET COMPONENTS core highgui imgproc imgcodecs) -->find_package(OpenCV 3 QUIET COMPONENTS core highgui imgproc imgcodecs video)
