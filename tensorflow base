@@ -12,7 +12,17 @@ Estimator：Estimator 是 TensorFlow 对完整模型的高级表示。使用它�
      每个键都是特征的名称。
      每个值都是包含此特征所有值的数组
    label - 包含每个样本的标签值的数组。
-   一般来讲，输入函数会使用tf.data模块的数据集类，具体参见该模块介绍。常用的还是TFRecordDataset。
+   一般来讲，输入函数会使用tf.data模块的数据集类，具体参见该模块介绍。常用的还是TFRecordDataset，tf.data.Dataset 表示一系列元素，其中每个元素包含一个或多个 Tensor 对象。创建来源（例如 Dataset.from_tensor_slices()），以通过一个或多个 tf.Tensor 对象构建数据集。应用转换（例如 Dataset.batch()），以通过一个或多个 tf.data.Dataset 对象构建数据集，如果输入数据以推荐的 TFRecord 格式存储在磁盘上，那么可以构建 tf.data.TFRecordDataset。。tf.data.Iterator 提供了从数据集中提取元素的主要方法。Iterator.get_next() 返回的指令会在执行时生成 Dataset 的下一个元素，并且此指令通常充当输入管道代码和模型之间的接口。
+   构建了表示输入数据的 Dataset 后，下一步就是创建 Iterator 来访问该数据集中的元素。tf.data API 目前支持下列迭代器，其复杂程度逐渐上升：单次、可初始化、可重新初始化、可馈送。
+   单次迭代器是最简单的迭代器形式，仅支持对数据集进行一次迭代，不需要显式初始化。单次迭代器可以处理基于队列的现有输入管道支持的几乎所有情况，但它们不支持参数化。且是唯一可以轻松与Estimator配合的迭代器。
+   若需要先运行显式 iterator.initializer 指令，才能使用可初始化迭代器。虽然有些不便，但它允许使用一个或多个 tf.placeholder() 张量（可在初始化迭代器时馈送）参数化数据集的定义。
+   可重新初始化迭代器可以通过多个不同的 Dataset 对象进行初始化。
+   可馈送迭代器可以与 tf.placeholder 一起使用，通过熟悉的 feed_dict 机制来选择每次调用 tf.Session.run 时所使用的 Iterator
+   Iterator.get_next() 方法返回一个或多个 tf.Tensor 对象，这些对象对应于迭代器有符号的下一个元素。每次评估这些张量时，它们都会获取底层数据集中下一个元素的值。如果迭代器到达数据集的末尾，则执行 Iterator.get_next() 指令会产生 tf.errors.OutOfRangeError。在此之后，迭代器将处于不可用状态；如果需要继续使用，则必须对其重新初始化。
+   Dataset.map(f) 转换通过将指定函数 f 应用于输入数据集的每个元素来生成新数据集。此转换基于 map() 函数
+   很多输入管道都从 TFRecord 格式的文件（例如使用 tf.python_io.TFRecordWriter 编写）中提取 tf.train.Example 协议缓冲区消息。每个 tf.train.Example 记录都包含一个或多个“特征”，输入管道通常会将这些特征转换为张量。
+   要迭代数据集多个周期，最简单的方法是使用 Dataset.repeat() 转换。
+   Dataset.shuffle() 转换使用一个类似于 tf.RandomShuffleQueue 的算法来随机重排输入数据集：它保留一个固定大小的缓冲区，并以相同方式从此缓冲区中随机选择下一个元素。
 3. 定义特征列：特征列是一个对象，用于说明模型应该如何使用特征字典中的原始输入数据。在构建 Estimator 模型时，您会向其传递一个特征列的列表，其中包含您希望模型使用的每个特征。tf.feature_column 模块提供很多用于向模型表示数据的选项。注意不同的Estimator支持的特征列类型不同。
    LinearClassifier 和 LinearRegressor：接受所有类型的特征列。
    DNNClassifier 和 DNNRegressor：只接受密集列。其他类型的列必须封装在 indicator_column 或 embedding_column 中。
@@ -44,8 +54,35 @@ Estimator：Estimator 是 TensorFlow 对完整模型的高级表示。使用它�
         params=None,
         warm_start_from=None
       )
+8. 保存与恢复：
+   1）tf.train.Saver：save与restore
+   2）inspect_checkpoint库：
+      （1）print_tensors_in_checkpoint_file：打印所有的tensor或指定的tensor，其他读取的方法有 pywrap_tensorflow.NewCheckpointReader(checkpoint_path)
+   3）TensorFlow 提供了多种与 SavedModel 交互的机制，如 tf.saved_model API、Estimator API 和 CLI。
+9. 多GPU训练：
+   1）多塔式：参考https://github.com/tensorflow/models/blob/master/tutorials/image/cifar10/cifar10_multi_gpu_train.py
+      主要方式：build graph（多个tower，每个tower上单独进行训练得到loss，然后汇总求平均之后再反传）训练数据组织利用slim
+   2）
+10. 数据嵌入
+11. 调试程序：
+    1）使用 tfdbg 封装 TensorFlow 会话：sess = tf_debug.LocalCLIDebugWrapperSession(sess)此封装容器与会话具有相同的界面，因此启用调试时不需要对代码进行其他更改。该封装容器还提供其他功能，包括：在每次 Session.run() 调用前后调出 CLI，以便您控制执行情况和检查图的内部状态。允许您为张量值注册特殊 filters，以便诊断问题。除了tf包装的filters之外，可以自定义
+    2）使用时利用python -m script.py --debug 启动，然后进入tfdbg，用法和gdb差不多。具体查看文档
+    3）tfdbg支持对tf-slim调优，需要在train中加入如下参数：session_wrapper=tf_debug.LocalCLIDebugWrapperSession，在evaluate中加入hooks=[tf_debug.LocalCLIDebugHook()]
+    4）可以使用 tfdbg 的 offline_analyzer 二进制文件离线调试，这对C++很有用，模型代码是采用 C++ 或其他语言编写的，则还可以修改 RunOptions 的 debug_options 字段以生成可离线检查的调试转储。
 
 
+二、性能优化
+1. 数据方面：数据这块比较复杂，一个常规的方式是降低模型到单次操作，看看每秒可操作的样本数的差异，如果GPU利用率到不了80-90%，那就说明数据输入是有瓶颈的，然后利用timeline和其他io监控来分析瓶颈所在。
+   1）预处理放在CPU上效率更好。把decode和crop放在一起更快，tf有专门的处理函数，利用它预处理比较好。
+   2）读取大量的小文件会显著影响IO效率，因此尽量把文件做大，小数据集尽量一次全部载入内存。
+   3）NHWC or channels_last是tf默认的，但如果使用了cudnn，利用NCHW or channels_first，此外tensorflow使用MKL进行编译，因此如果不支持MKL,那么NCHW不支持
+   4）使用BN的时候尽量用fused=True选项，这样可以加速15%-30%
+   5）tensorflow和其编译条件有关系的，所以自己从源码编译的tf更符合系统配置。
+   6）编译选择：AVX2》MKL》AVX》SSE3
+   7）dataset数据输入时的map函数提供了num_parallel_calls参数使用多个CPU核处理，该函数是将传入的用户自定义预处理函数加载到数据集上。提供了tf.contrib.data.map_and_batch可以处理batch的数据。
+   8）数据extractiontf.contrib.data.parallel_interleave
+   9）tf.data.Dataset.cache 将数据全部放入内存
+   10）Interleave / Prefetch / Shuffle /Repeat
 
 
 
