@@ -17,6 +17,7 @@
    回到整数对象的创建：主要利用的是COL类型的API创建，PyInt_FromLong，PyInt_FromString，PyInt_FromUnicode三个接口，后两者实际就是先将字符串等对象转换为浮点数，然后在开勇PyInt_FromFloat，这实际就是适配器模式的实现。
    小整数对象：Python中所有对象都存活在系统堆上，而且是静态创建的，那么其创建方式就是malloc，而对于小整数对象会造成效率下降，因此就是使用了对象池技术。而受益于Python整数对象的不变性，所有的整数对象都可以被任意的共享，python中小整数为[-5,257]，这些小整数一开始就被创建缓存在内存里，使用时取出即可。
    大整数对象：考虑到时间和空间的问题，Python运行环境将提供一块内存空间轮流供大整数对象使用，谁需要谁使用，这样就避免了不断的malloc又考虑了内存。其具体实现是利用了PyIntBlock结构（单向列表），用于管理一定的python 整数对象，而多个block的组织也是通过链表。此外python会构建一个free_list管理所有的空前内存。Blcok开始只是一个数组最后转换为一个链表，其连接是利用P有Object的ob_type类型，但是这样就放弃了类型安全的坚持，不过也可以连接整数类型的派生类了。
+   注意小整数是共享的，但是大整数并不会。
    因此当新建整数对象时会先判断是否是小整数对象，然后选择合适的操作。
    当一个python整数对象被销毁时，它所占的内存不会被释放归还给系统，而是继续被python保存，变成自由内存，将来可供别的整数对象使用。但其实这样是python的一个漏洞，可以利用此漏洞吃完内存。 
 
@@ -41,8 +42,19 @@
 
 第五章、Dict对象
 1. 不同于C++ map使用红黑树（查找o(lgn)）,python dict为了效率使用的是hash散列表，查找效率o(1),解决冲突的方法是开放定址法（二次探测函数）。
-2.
+2. Dict对象中entry有三个状态：active、dummy（伪删除）、unused（key和value均为null），当记录被删除时不是直接被删除而是转为dummy，这样是为了防止探查链因此而中断。当python搜索到dummy时，会认为它虽然是无效的，但是其后面的元素还是有效的。
+3. Dict中的key和value其实都是PyObject基类对象指向的。
+4. 内部关联：Dict中维护ma_fill、ma_used、ma_mask、ma_table、ma_smalltable、ma_lookup，ma_fill是active+dummy记录个数，ma_used是active数量，ma_table指向一片entry的内存空间，如果记录数小于八，则使用ma_smalltable, ma_lookup是查找函数指针。
+5. 对象创建：使用内部的PyDict_new接口创建，依旧使用了对象缓冲池。
+6. 元素搜索：lookdict与lookdict_string两种，实际上算法是一致的，后者是前者的特殊情况。需要注意的是他们的返回结果永远是一个entry而不是null，如果搜索不到那么返回的entry 的value为null。搜索是会比较两种相同：值相同、引用相同（引用的内存地址相同），先比较后者再比较前者，只要相同就停止搜索。当搜索到dummy或unused时需要完整的设置hash、key、value
+7. 缓冲池：与PyList的机制一样。
 
+
+第六章、python的编译结果
+1. python是解释性的语言：这句话是不对的，它和java等没有太大区别，总体也是分为虚拟机、字节码两个部分。虚拟机的执行原理都是一样的，但是python虚拟机的抽象层次更深，离真实机器更远。
+   python执行过程：py文件---->虚拟机编译---->pyc文件---->虚拟机执行---->执行结果，windows下虚拟机为pythonXX.dll,linux下为bin文件
+   java执行过程：.java文件---->javac编译---->.class字节码文件---->调用java命令执行---->执行结果。
+2. pyc: PyCodeObject对象，编译完成后结果会保存在pyCodeObject对象中，执行结束后保存到pyc文件中，下次执行时如果没有改动源文件那么久从pyc文件直接重建pycodeobject对象。那么编译出来的东西有哪些呢？主要有字节码、（字符串、常量等对字节码有用的信息）
 
 
 
