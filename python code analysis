@@ -55,6 +55,24 @@
    python执行过程：py文件---->虚拟机编译---->pyc文件---->虚拟机执行---->执行结果，windows下虚拟机为pythonXX.dll,linux下为bin文件
    java执行过程：.java文件---->javac编译---->.class字节码文件---->调用java命令执行---->执行结果。
 2. pyc: PyCodeObject对象，编译完成后结果会保存在pyCodeObject对象中，执行结束后保存到pyc文件中，下次执行时如果没有改动源文件那么久从pyc文件直接重建pycodeobject对象。那么编译出来的东西有哪些呢？主要有字节码、（字符串、常量等对字节码有用的信息）
+   在编译时，python将任何一个作用域或者命名空间当做一个code block，然后为其生成一个PyCodeObject对象。对于命名空间是可以嵌套的形成命名空间链。
+   pycodeObject各个域的作用：
+   co_argcount：作用域的个数，即code block位置参数的个数
+   co_nlocal：局部变量个数
+   co_stacksize：需要的栈空间大小
+   co_code：字节码的指令序列
+   co_consts：存储常量
+   co_names：存放字符
+   co_varnames：局部变量名集合
+   co_freevar：闭包需要的东西
+   co_cellvars：内部嵌套函数的变量集合
+   co_filename：.py文件路径
+   co_name：block名称
+   co_firstlineno：起始行
+3. 为什么有的python文件会生成pyc而有的不生成呢，这是因为import机制会触发pyc的生成，而没有被import的文件，python会认为他不会被重复使用，就不会被生成pyc。除此之外可以用py_compile、compiler等python标准库生成。
+4. python中访问pycodeobject的属性可以用compile内建函数构建code对象进行访问。
+5. python创建pyc文件时会先写入pyc_magic（整数），它用来保证python版本，保证版本兼容性（不同版本的pyc文件不能随意加载）。然后会写入时间信息，当py改变时会根据时间判断是否重新编译。然后写入pycodeobject文件完成创建。将所有的对象写入字节流，类型信息写入标识，
+6. python提供对字节码进行解析的工具dis。
 
 
 
