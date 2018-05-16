@@ -79,7 +79,50 @@
 2. python虚拟机不是直接执行pycodeobject，而是执行它对应的pyframeobject，它对应一个命名空间，即对应了栈帧，是对栈帧的模拟。
 3. python sys模块有个get_frame函数可以获得frame信息。
 4. 命名空间：分为local、global、内建，与python base里面的内容相结合。
-5. Windows下python运行时会有一个主进程，其拥有一个主线程及若干线程，python主要以线程为主
+5. Windows下python运行时会有一个主进程，其拥有一个主线程及若干线程，python主要以线程为主,对于多线程来说，python中的modules是共享。同Windows下的多进程相似，理论上来说python是可以运行多个解释器的，但是通常只有一个解释器，它维护多个线程，线程同步则是利用GIL(global interpreter lock)：全局解释器锁，后面会重点介绍。
+
+第八章、python虚拟机中的一般表达式和控制流
+1. 一般表达式主要是对象创建语句、打印语句等，因此其使用的基本就是local命名空间以及pyframe的运行时栈。
+2. 控制流主要是if、while、for等语句的实现，都是一堆指令集，需要时查看即可，注意python中是没有switch控制语句的哦。
+3. 需要注意一下迭代器是的实现：Python在运行时会先获取栈顶的list等可迭代对象，然后通过PyObject_generater对象来实现list等对象的迭代。PyObject_generater主要使用对应迭代对象的类型对象中的tp_iter来获得与对象关联的迭代器。在Python中迭代器与C++、java等语言的设计是一样的，都是对底层接口的封装，这也符合GoF的迭代器设计模式思想。在C++中vector迭代是使用C原生指针，而list则是使用类来实现，这点python的设计是与list一致的。
+4. 异常控制流：这里需要密切注意一下，其执行流程如下：
+   RAISE_VARARGS抛出异常-->发现PyTryBlock-->初始化异常信息-->从线程状态中取出异常信息-->入栈-->跳转到exception块-->异常匹配-->执行块内代码-->跳转到finally-->执行完后继续执行当前frame的代码。注意一旦没有发现PyTryBlock或者异常不匹配都会跳到finally展开堆栈空间。
+
+第九章、python虚拟机中的函数机制
+1. 调用函数时会创建新的pyFrameObject对象，整个函数链会形成PyFrameObject对象链。
+2. PyFunctionObject对象：Python中函数也是一个对象，其抽象就是通过类来实现。结构如下
+   typedef struct{
+       PyObject_HEAD;
+       PyObject *func_code; frame对象
+       PyObject *func_global; 运行时的global空间
+       PyObject *func_default; 默认参数
+       PyObject *func_closure; 用于实现闭包
+       PyObject *func_doc; 文档
+       PyObject *func_name;函数__name__属性
+       PyObject *func_dict; 函数__dict__属性
+       PyObject *func_weakerflist;
+       PyObject *func_module; 可以是任何对象
+   }
+   pyfunction对象与pycode对象不同，前者是动态的，是运行时的结果，由def语句创建，包含了一个函数执行所必须的信息，比如上下文信息，而后者是静态编译的，是编译时结果，在一段python代码中只会有一个pycode，却可以包含多个函数对象。
+   python虚拟机中函数的声明与实现是分离开的，这是python隐藏的一个秘密。从语法上将def是函数的声明语句，而从虚拟机执行角度来讲，def是动态的创建了一个函数对象，但是需要注意的是函数对象创建完成后，其内部的代码被保存到了一个code对象中，所以当声明函数时会先把它载入运行时栈，在创建函数（MAKE_FUCTION指令）时将其弹出，根据它和当前frame中保存的global等信息通过PyFuc_new创建函数对象，其中MAKE_FUNCTION指令还会处理参数问题。而对函数的调用是通过call_function函数来调用的。针对一般函数python有自己的快速通道，创建新的frame对象，而对于python独有的函数则不会走快速通道。
+   位置参数：func(a,b="c",*args,**kwargs):a位置参数，b为键参数，args为扩展位置参数，kwargs是扩展键参数。虚拟机在执行CALL_FUNCTION时会先获取参数。
+   
+第十章、python虚拟机之类机制
+1. python中类也是对象，即一切皆为对象，python中共有三种类：type对象（表示python内置的类型）、class（程序员自定义）、instance（实例对象）。在python2.2之前type与class是有区别的，type不能被继承，而现在type和class已经一致了，可以看做同一种类型。与此同时对象之间的关系也有两种：is-kind-of（基类与子类的关系）、is-instance-of（实例与类的关系）。对于前者可以用__base__、__bases__（多基类）来进行探测，对于后者可以用__class__、type、instance来探测。需要注意实例对象和class对象的方法以及属性是不一样的。
+2. metaclass对象：其实就是type(A)得到的结果为type的对象，即<type 'type'>对象，这意味着他们是可以被继承的，即可以作为其他对象的type。class对象的创建也是利用了metaclass对象。
+3.在python中任何一个对象都有type，instance对象的type必定是class对象，class对象的type必定是metaclass，而object则是万物之母。python2.2之前之所以type对象不能被继承是因为没有在type中寻找某个属性的机制。而python2.2之后为type对象增加了tp_dict（dict）对象，通过查找dict来寻找属性。这里引出可调用的概念，class对象内部实现了__call__（默认实现，可重写）函数它才是可调用的，而其实例对象则是通过PyObject_call函数来调用call完成可调用性的。实际上来说__call__就是()的重载，因此python中使用()操作符有时会报XXX object is not callable.
+4. 在python中，会在启动时对python的整个类型系统进行初始化，初始化从Py_Readytypes开始，调用PyType_ready对class对象（包括type和class）进行初始化，对于内置的type，会对其进行完善（比如tp_dict填充），而对于class（用户自定义）则需要创建、申请内存、完善等操作。处理时会先获取基类，当基类没有初始化则对基类进行初始化（__base__\__bases__处理的结果）。
+5. 填充tp_dict：slotdefs、slot、descripter，slot存放着一个操作对应的信息，但是它不是对象，不能直接存放到tp_dict中，因此被包装到了descripter，descripter填充了tp_dict。为了dict的get_item实现，slot被存放到了slotdefs数组中并进行了排序。
+6. 确定MRO：method resolve order：针对多继承，不想java只支持单继承，python实现了多继承就必须确定基类方法的解析顺序（也就是子类多不同基类重名函数的调用机制），PyType_ready在初始化的时候通过函数mro_interanl完成mro顺序的建立，python虚拟机会建立一个tuple对象，保存着class对象的循序，mro顺序的建立就是根据这个tuple里面class对象的顺序。mro存放了class对象的所有直接、间接基类，然后将自身没有的操作从mro里面拷贝出来完成继承。
+7. 填充子类列表：会将基类所有的子类填充到tp_subclasses中，它是一个列表，通过__subclass__()方法获取子类列表。至此初始化完成。
+
+8. 同函数一样，类的声明与定义也会分离，其成员函数也会分离。创建对象的步骤：
+   1）获取动态元信息并入栈（type是什么，占用多少内存，有多少属性与方法）
+   2）获取class名称与基类列表
+   3）调用build_class创建class对象，然后将其压入运行时栈
+   对于instance调用class对象的__call__方法即会创建。
+9. 成员函数的绑定：pyfunc对象和instance对象的绑定是通过pymethod对象完成的，它是一个具有缓冲池的对象。成员函数中的self参数其实就隐藏在这个对象中，它是一个位置参数，因此名称是不是self都无所谓，self只是大家约定成俗的而已。这种访问方式称为bound method，对应的unbound method方式则应该称为A.f，即class对象的函数调用。区别在于A.f的self需要我们自己传递。
+
 
 
 
