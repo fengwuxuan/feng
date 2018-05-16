@@ -74,6 +74,12 @@
 5. python创建pyc文件时会先写入pyc_magic（整数），它用来保证python版本，保证版本兼容性（不同版本的pyc文件不能随意加载）。然后会写入时间信息，当py改变时会根据时间判断是否重新编译。然后写入pycodeobject文件完成创建。将所有的对象写入字节流，类型信息写入标识，
 6. python提供对字节码进行解析的工具dis。
 
+第七章、python虚拟机框架
+1. 可执行文件的执行机制：当在函数g中执行函数f的调用时，系统会在g的栈帧之后创建f的栈帧，在发生函数调用时系统会保存上一个栈帧的栈指针esp和帧指针edp，当调用结束再恢复。
+2. python虚拟机不是直接执行pycodeobject，而是执行它对应的pyframeobject，它对应一个命名空间，即对应了栈帧，是对栈帧的模拟。
+3. python sys模块有个get_frame函数可以获得frame信息。
+4. 命名空间：分为local、global、内建，与python base里面的内容相结合。
+5. Windows下python运行时会有一个主进程，其拥有一个主线程及若干线程，python主要以线程为主
 
 
 
