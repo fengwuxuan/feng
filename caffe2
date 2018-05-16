@@ -1,0 +1,12 @@
+1. Parameter to MergeFrom() must be instance of same class: expected caffe2.NetDef got caffe2.NetDef.
+   解决方式：
+   在caffe2/caffe2/proto 文件夹下降metanet.proto的message拷贝到caffe2.proto,删除metanet.proto
+   在caffe2/caffe2/core的predictor.h文件中将#include "caffe2/proto/metanet.pb.h" 改为#include "caffe2/proto/caffe2.pb.h"
+   然后重新make安装
+   在安装目录下的lib/python2.7/site-packages/caffe2/proto文件夹下修改__init__.py,由于此时没有metanet_pb2文件，其已被合并到了caffe2_pb2中，因此为了防止其他模块引用出错，在__inin__.py中添加：
+   try:
+     import metanet_pb2
+   except Exception:
+     import caffe2_pb2 as  metanet_pb2
+     
+2. make时由于benchmark的BENCHMARK_MAIN()错误，在caffe2/third_party/benchmark/include/benchmark中修改benchmark.h 1214行：将int main(int, char**) {}注销，重复定义了，且定义的有问题。
