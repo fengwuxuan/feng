@@ -125,6 +125,13 @@
 
 
 第十一章 python运行环境初始化
+1. 进程初始化：python的初始化是从py_initializeEX开始的，在此之前也做了诸多工作，但真正开始是从这里，它先启动核心进程pyInterpreterstate（有next指针，实际是一组核心的进程），然后启动多个pythreadstate（多个），每个thread加载不同的模块、函数等等。在此期间python会加载buildin、sys等系统模块。
+2. 加载buildin modules：加载modules的时候，python interpreter会创建PyDictObject，维护所有的modules，对于每个module会创建module对象，为module设置name、doc等属性，然后填充其他属性及函数，遍历整个模块，将每一个method封装为PyCFunction对象，该对象也采用了缓冲池技术。
+3. 加载sys module：与buildin差不多，这里注意会设置整个python的搜索路径
+4. 创建__main__ module,创建site-specified搜索路径。
+5. 创建完成后激活虚拟机，注意交互方式运行和脚本运行是没有太大区别的，最终都是进入同一个虚拟机。
 
+第十二章 python模块的动态加载机制
+1. 
 
 
