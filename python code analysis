@@ -124,5 +124,7 @@
 9. 成员函数的绑定：pyfunc对象和instance对象的绑定是通过pymethod对象完成的，它是一个具有缓冲池的对象。成员函数中的self参数其实就隐藏在这个对象中，它是一个位置参数，因此名称是不是self都无所谓，self只是大家约定成俗的而已。这种访问方式称为bound method，对应的unbound method方式则应该称为A.f，即class对象的函数调用。区别在于A.f的self需要我们自己传递。
 
 
+第十一章 python运行环境初始化
+
 
 
