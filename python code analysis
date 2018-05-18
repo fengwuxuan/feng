@@ -132,6 +132,13 @@
 5. 创建完成后激活虚拟机，注意交互方式运行和脚本运行是没有太大区别的，最终都是进入同一个虚拟机。
 
 第十二章 python模块的动态加载机制
-1. 
-
+1. 通过每个model内部维护的module dict来加载，dir()函数可以列出当前模块内的所有符号表，当导入新的模块时可以看到它发生变化，也可以用__dict__属性导出（注意python自带的交互器与ipython的输出是不一样的），dict导出的东西和__builtins__导出的差不多，前者包含后者，其实他们都是python初始化时维护的__builtins__与__dict__。
+2. 当module嵌套时，实际上他们是互不影响的，他们拥有自己的符号表。利用id()函数可以轻易的查看某个对象甚至是模块的ID，eg(id(max)),id(caffe2)
+   利用sys.modules可以列出当前python环境下所有的modules，他是一个字典，可以用key来判断是不是安装了某个module，eg:sys.module['caffe2']，结果是module名称及其路径。
+3. package机制：必须加入__init__.py机制，导入A.b后再导入A.c，A下面的__init__.py仅会被导入一次，这是因为包的结果是树型的，在python中被拆为A,b,c这样的集合，当python发现某个部分被导入后，后面就不会再导入了（实际是A导入后维护了一个__path__，到导入c时python只会在A的路径中搜索，不会再全局搜索）。
+   from A import b 与 import A.b的区别：from将b放入了当前局部空间，而不是像import一样作为A的属性存在。前者通过dir函数只能找到b，后者则可以找到A。如果加上as B 则 只能找到B，这是python内部的映射机制，实际都是映射到A.b。
+   对于导入的东西可以用del语句将其从dict中删除，但不是真正的删除，python维持了一个module pool，用于缓存，避免动态加载每次都要保存，del删除后只是在代码中不可访问，但实际上依旧存在于pool中，如果要重载，则可以利用reload函数。
+   python在import的时候回先加锁，import完成之后解锁，避免多线程造成的影响。
+4. find搜索：当import时其__path__被加入find_modules，以供搜索。
+5. py_cache文件夹：工程目录下有__main__.py文件，和其他将要调用的模块时。如果只有当前运行的脚本 "__main__"，则不会生成 __pycache__ 的文件。python会将工程下的文件都编译成pyc字节码包含各种pycodeobject，然后存放到该文件中。python调用的时候-B就不会出现了。
 
