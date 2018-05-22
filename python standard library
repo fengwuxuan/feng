@@ -19,3 +19,26 @@
    13) @staticmethod: 将类函数转为静态函数，是一个包装器。
    14）super() 函数是用于调用父类(超类)的一个方法。super 是用来解决多重继承问题的，直接用类名调用父类方法在使用单继承的时候没问题，但是如果使用多继承，会涉及到查找顺序（MRO）、重复调用（钻石继承）等种种问题。super([type[, object-or-type]])
    15）vars:返回对象的__dict__属性
+
+2. builtin-type：
+   1) Truth value testing:对于一个object，其可被测试真值需要实现__bool__()方法或者__len__方法返回0（表示false）。
+   2) Iterator Types: Iterable、Iterator都有__iter__方法，后者还需事先__next__方法，同时后者可以直接被next函数调用直至抛出StopIteration异常。凡是可作用于for循环的对象都是Iterable类型；凡是可作用于next()函数的对象都是Iterator类型，它们表示一个惰性计算的序列，意味着想要像直接访问必须用list等函数强转，否则只能用next或者for；集合数据类型如list、dict、str等是Iterable但不是Iterator，不过可以通过iter()函数获得一个Iterator对象。Python的for循环本质上就是通过不断调用next()函数实现的
+   3) Generator Types：常用()生成式或者yield语句与函数结合。也是在for中可以循环。
+   4) memoryview(obj):查看obj的内部存储情况，不进行copy。返回一个memoryview对象，操作类似tuple。支持索引切片等等。属性有readonly、contiguous、shape、nbytes、format、ndim、strides、itemsize等，方法有cast、hex、release、tobytes、tolist，注意到其实现了__enter__\__exit__，说明是可以与with连用的
+   
+3. 文本处理
+   1) re:正则表达式
+   2) difflib: 比较文本差异，SequenceMatcher类：提供比较两个文本序列的方法，包括获取匹配段、相似度等。Differ类提供compare(a,b)函数可以将两段文本的不同之处提出到一个惰性序列，用list强转可以获取快速访问。提供的还有HTMLDiffer及其他函数。
+   3) textwrap：针对多行文本进行包装与填充，以及缩进、去缩进等操作。
+   4) stringprep：网络字符串处理
+   5) readline：读写python历史文件，与 rlcompleter协同作用。
+   6) codecs：python 编码、解码模块。
+
+5. 数值部分
+   1) numbers:数值基类库，主要有实数、虚数、有理数、积分等基类
+   2) math、cmath数值计算库，后者是复数的
+   3) decimal：小数库
+   4) fraction:分数库
+   5）random库：
+      seed、getstate、setstate、choice[选出一个]、choices[可选出多个]、randrange、radint、sample、shuffle等函数以及其他各种概率分布。
+   6) statistics：统计模块，均值、方差、协方差等等。
