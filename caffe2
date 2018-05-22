@@ -10,3 +10,5 @@
      import caffe2_pb2 as  metanet_pb2
      
 2. make时由于benchmark的BENCHMARK_MAIN()错误，在caffe2/third_party/benchmark/include/benchmark中修改benchmark.h 1214行：将int main(int, char**) {}注销，重复定义了，且定义的有问题。
+3. caffe2编译：../../lib/libcaffe2.so: undefined reference to `cv::DualTVL1OpticalFlow::create(double, double, double, int, int, double, int, int, double, double, int, bool)'
+   解决方案：在caffe2/cmake文件夹修改Dependencies.cmake文件：find_package(OpenCV 3 QUIET COMPONENTS core highgui imgproc imgcodecs) -->find_package(OpenCV 3 QUIET COMPONENTS core highgui imgproc imgcodecs video
