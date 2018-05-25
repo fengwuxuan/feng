@@ -494,6 +494,7 @@
 11. OProfile
 12. No space left on device：两种情况，第一种确实磁盘空间不足，df -h查看，第二种Inode使用完了，df -i查看，在linux系统下，硬盘被分区格式化后，包含inode和block，inode是用来记录文件的大小，物理地址，属主，属组，读写权限，时间戳，被硬链接的次数等等元数据的。block是用来存储数据的。正因为这种文件系统结构，在linux下，除了剩余磁盘空间之外，还要剩余inode才行，两者缺一不可的。可通过dumpe2fs -h /dev/sdb1或tune2fs -l /dev/sdb1 来查看最大inode数和inode大小。一旦文件系统创建后，每个分区的可用inode数无法动态的进行调整，除非重新格式化。
     利用du -cks * | sort -nr | head -n 20查看是哪些目录占用inode比较多，可以考虑删除不必要的操作。
+13. ps -ef | grep xxx| grep -v grep | cut -c 9-15 | xargs kill -9
 
 
 
