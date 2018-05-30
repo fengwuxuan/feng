@@ -20,3 +20,5 @@
   总结：
   如果数据是稀疏的，就用自适用方法，即 Adagrad, Adadelta, RMSprop, Adam。RMSprop, Adadelta, Adam 在很多情况下的效果是相似的。Adam 就是在 RMSprop 的基础上加了 bias-correction 和 momentum，随着梯度变的稀疏，Adam 比 RMSprop 效果会好。整体来讲，Adam 是最好的选择。
 5. 3D对时序把握更好，但是2D可以关注更多的空间信息，针对场景大的数据来说可能效果更好。
+6. GRU是LSTM的变种，将LSTM的输入门、输出门、遗忘门改为更新门与重置门。
+7. 
