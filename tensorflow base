@@ -62,13 +62,14 @@ Estimator：Estimator 是 TensorFlow 对完整模型的高级表示。使用它�
 9. 多GPU训练：
    1）多塔式：参考https://github.com/tensorflow/models/blob/master/tutorials/image/cifar10/cifar10_multi_gpu_train.py
       主要方式：build graph（多个tower，每个tower上单独进行训练得到loss，然后汇总求平均之后再反传）训练数据组织利用slim
-   2）
+   2）利用slim库实现。
 10. 数据嵌入
 11. 调试程序：
     1）使用 tfdbg 封装 TensorFlow 会话：sess = tf_debug.LocalCLIDebugWrapperSession(sess)此封装容器与会话具有相同的界面，因此启用调试时不需要对代码进行其他更改。该封装容器还提供其他功能，包括：在每次 Session.run() 调用前后调出 CLI，以便您控制执行情况和检查图的内部状态。允许您为张量值注册特殊 filters，以便诊断问题。除了tf包装的filters之外，可以自定义
     2）使用时利用python -m script.py --debug 启动，然后进入tfdbg，用法和gdb差不多。具体查看文档
     3）tfdbg支持对tf-slim调优，需要在train中加入如下参数：session_wrapper=tf_debug.LocalCLIDebugWrapperSession，在evaluate中加入hooks=[tf_debug.LocalCLIDebugHook()]
     4）可以使用 tfdbg 的 offline_analyzer 二进制文件离线调试，这对C++很有用，模型代码是采用 C++ 或其他语言编写的，则还可以修改 RunOptions 的 debug_options 字段以生成可离线检查的调试转储。
+    5）tf.print是可以打印出来tensor的数据的，可以用于debug。
 
 
 二、性能优化
@@ -84,5 +85,7 @@ Estimator：Estimator 是 TensorFlow 对完整模型的高级表示。使用它�
    9）tf.data.Dataset.cache 将数据全部放入内存
    10）Interleave / Prefetch / Shuffle /Repeat
 
-
+三、tensorpack
+四、tensorflow modules
+1. 
 
