@@ -1,1 +1,4 @@
 1. export TF_CUDNN_USE_AUTOTUNE=0 对于网络输入不定的情况，tensorflow会利用CUDNN进行不同形状的测试，确定合适的输入，这个比较耗时，可以选择关闭。
+2. graph transform tools
+3. timeline && profiler性能分析工具。
+4. 
