@@ -1,2 +1,4 @@
 1. python中字符串、整数等对象等号赋值是深拷贝，而列表字典等是浅拷贝，注意赋值前后更改某一个对象产生的变化。
-2. 
+2. __future__模块的特性：
+   from __future__ import absolute_import：这句代码使得其所属模块无法通过相对路径进行导入，主要是为了防止与系统模块或者其他项目混合。
+   from __future__ import unicode_literals：为了解决python2/3在汉字编码上的问题，python2中必须加上u前缀才是Unicode编码，因为其不是默认Unicode编码，而在3中是unicode编码，因此二者在跨平台时容易产生问题，解决方法可以通过six、sys版本判断等，当然这句也是一个
