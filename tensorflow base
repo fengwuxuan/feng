@@ -85,7 +85,80 @@ Estimator：Estimator 是 TensorFlow 对完整模型的高级表示。使用它�
    9）tf.data.Dataset.cache 将数据全部放入内存
    10）Interleave / Prefetch / Shuffle /Repeat
 
-三、tensorpack
-四、tensorflow modules
+三、tensorpack：有点速度比keras快1.5倍，比原生tensorflow更快，提供比tf.data更好的数据处理流程，针对大数据集，完美兼容其他tensorflow模块。
 1. 
+
+四、tensorflow modules
+1. tf模块：主要包含assert引言、各种基本的tensor操作（数值计算、维度变化、类型变化等等）、设备定义、collection集合操作、基本的数据操作（FIFOQUEUE等）、Config定义、Session、variables操作、GPU、Graph、Summary等。
+2. app模块：flags子模块是tf.flags的别名，可用tf.app.flags替代，主要用于定义各种参数。tf.app.run(main,argv):参数可选。处理flag解析，然后执行main函数,如果不指定main函数则是使用__main__。
+3. tf.bitwise：位运算库
+4. tf.contrib：第三方开发者贡献库
+   1）copy_graph模块：在graph之间拷贝元素，包括op和variables
+   2）cudnn_rnn：利用cudnn实现的rnn模块
+   3）data模块：构建输入pipelines。
+   4）decision_trees：决策树模块
+   5）distribute：TF分布式计算库原型
+   6）distributions：概率分布库
+   7）estimator：contrib的estimator模块
+   8）factorization：聚类库
+   9）ffmpeg：编解码音视频，对于视频只支持在线解码
+   10）framework：框架类工具，包含了变量操作、命名空间、checkpoint 操作。重点，许多操作都可以在这里获得。
+   11）gan：生成对抗网络模块
+   12）graph_editor：计算图的编辑
+   13）image：图像预处理
+   14）input_pipeline: 输入流水线
+   15) layers:对tf.layers的封装，有一些经典CNN方法的重构
+   16）learn：包含Estimator、Classifier、Regressor、SVM以及train、evaluation（类似slim）的方法。
+   17）losses： loss 相关
+   18）memory_stats： 设备内存使用情况
+   19）meta_graph_transform： 计算图转换
+   20）metrics 各种度量模型表现的方法
+   21）model_pruning：模型剪枝库
+   22）nccl：一些收集结果的方法
+   23）nn：tf.nn的其他版本，是对其的封装
+   24）opt：优化器
+   25）optimizer_v2：高级优化器，Adam、RMSProp等
+   26）proto：编解码proto
+   27）quantize：重写graph用于quantize 训练
+   28）receptive_field：提供针对graph计算感知野的方法
+   29）remote_fused_graph：远程复用graph
+   30）rpc：提供RPC通信方法
+   31）summary：summary库，有别于tf的部分方法
+   32）tfprof：提供查看模型细节的方法
+   33）tensorboard
+   34）training
+5. data：提供了不同的Dataset类
+6. distribution:概率分布模块
+7. errors：TF errors API
+8. estimator
+9. gfile：文件以及目录操作
+10. graph_utils：将variables转为constants，限定必须在CPU上运行，提取子图，移除训练节点等操作
+11. image：图像处理模块
+12. layers：最底层的deep模块
+13. logging：有debug、info、warning、error、flush等
+14. losses：建议用这个或者contrib的losses
+15. metrics：评价库
+16. nn:对layers的进一步封装
+17. profiler：性能、模型查看库
+18. python_io：操作Records
+19. resource_loader：从本地载入文件
+20. saved_model：保存模型以及载入模型
+21. sets：集合操作，交并差等
+22. summary
+23. sysconfig:获取编译flags、include、lib、link_flags路径
+24. test：
+25. train：包含优化器、数据集（batch、Feature等）、checkpoints、decay等超参数、global_step、meta_graph、variable、epoch、session、saver、分布式、Supervisor、graph、summary、warm_start。
+26. tfdbg
+27. timeline
+28. py_func：是包装一个普通的 Python 函数，这个函数接受 numpy 的数组作为输入和输出，让这个函数可以作为 TensorFlow 计算图上的计算节点 OP 来使用。注意在graph导入导出的时候会有问题。
+
+五、slim流程
+1. 数据处理
+2. 模型构建
+3. 训练（多GPU并行）
+4. 评估
+      
+   
+   
+   
 
