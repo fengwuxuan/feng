@@ -23,4 +23,4 @@
 6. GRU是LSTM的变种，将LSTM的输入门、输出门、遗忘门改为更新门与重置门。
 7. 网络设计原则：c*h*w经过多层layer仍旧保持一致。
 8. caffe pytorch caffe2中dropout概率是置零的概率，而tensorflow是保留的概率。
-9. 写动态规划算法时遇到数组，命名可以选用dp.
+9. feature map的重要性如何评估：看方差而不是均值，方差大说明内部特征明显。
