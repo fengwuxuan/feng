@@ -1,4 +1,10 @@
 1. 在处理正负样本不均衡的问题上，two-stage网络更有优势。
 2. 在难例挖掘上将正负样本比例维持在1:3
-3. min_depth 与 depth_multipler：前者是所有卷积操作的最小通道数（当depth_multipler小于1时强制执行，否则不起作用），后者是所有卷积的现有通道数*depth_multipler
-得到最终的通道数，二者联合控制计算量。
+3. min_depth 与 depth_multipler：前者是所有卷积操作的最小通道数（当depth_multipler小于1时强制执行，否则不起作用），后者是所有卷积的现有通道数*depth_multipler得到最终的通道数，二者联合控制计算量。
+4. freezebn：因为利用backbone的时候达不到原本的batch或者batch比较小，很难让bn的参数稳定，因此用freeze。
+5. action中的BN freeze是为了防止过拟合，BN会把loss拉的很低。
+6. ROI Align实际就是tf中的crop_and_resize。
+7.GN：就是将[n,c,h,w]中将Channl分成很多组，对每一组做归一化，及先将feature的维度由[N, C, H, W]reshape为[N, G，C//G , H, W]，归一化的维度为[C//G , H, W]，而不是像BN那样在n维度上做归一化。传统角度来讲，在深度学习没有火起来之前，提取特征通常是使用SIFT，HOG和GIST特征，这些特征有一个共性，都具有按group表示的特性，每一个group由相同种类直方图的构建而成，这些特征通常是对在每个直方图（histogram）或每个方向（orientation）上进行组归一化（group-wise norm）而得到。而更高维的特征比如VLAD和Fisher Vectors(FV)也可以看作是group-wise feature，此处的group可以被认为是每个聚类（cluster）下的子向量sub-vector。
+从深度学习上来讲，完全可以认为卷积提取的特征是一种非结构化的特征或者向量，拿网络的第一层卷积为例，卷积层中的的卷积核filter1和此卷积核的其他经过transform过的版本filter2（transform可以是horizontal flipping等），在同一张图像上学习到的特征应该是具有相同的分布，那么，具有相同的特征可以被分到同一个group中，按照个人理解，每一层有很多的卷积核，这些核学习到的特征并不完全是独立的，某些特征具有相同的分布，因此可以被group。
+导致分组（group）的因素有很多，比如频率、形状、亮度和纹理等，HOG特征根据orientation分组，而对神经网络来讲，其提取特征的机制更加复杂，也更加难以描述，变得不那么直观。另在神经科学领域，一种被广泛接受的计算模型是对cell的响应做归一化，此现象存在于浅层视觉皮层和整个视觉系统。这样就可以解释为什么不用LN(c,h,w)来归一化或者IN（H,W）。
+  SyncBN：即多GPU的BN的同步
