@@ -1,7 +1,0 @@
-1. model representation and cost function
-  1）分类和回归的界定
-  2）线性回归的定义与Loss function
-     假设：H(x) = b + w*x
-     参数：w b
-     cost function：
-2. 
