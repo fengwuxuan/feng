@@ -25,4 +25,4 @@
 8. caffe pytorch caffe2中dropout概率是置零的概率，而tensorflow是保留的概率。
 9. feature map的重要性如何评估：看方差而不是均值，方差大说明内部特征明显。
 10. caffe中bn use_global_state如果为真，则使用保存的均值和方差，否则采用滑动平均计算新的均值和方差。该参数缺省的时候，如果是测试阶段则等价为真，如果是训练阶段则等价为假。
-11. 
+11. DPM中实际用了Hog特征，参考DeepID中可形变Pooling与DCN可形变卷积、以及DPM的关系。
