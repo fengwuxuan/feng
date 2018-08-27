@@ -24,7 +24,8 @@
             还要考虑分类得分的问题，用IOU分数筛选出来的最大置信度的框，其分类score是所有抑制掉的框的score的最大值。
     IterBox：把上一次迭代的box拿过来继续分类迭代，类似MTCNN
     Integral Loss：Pooling之后学习不同的分类器，但是回归器只有一个。
-15. DCN、bigbatch、DPooling、heavier header、Light Head
+15. DCN、bigbatch、DPooling、heavier header、Light Head。其中DCN与DPooling都是在原本的卷积或者ROI Pooling的基础上去加一层卷积或者全连接，
+    学习卷积的偏移量，然后作用在原本的卷积核或者Pooling上，原本的矩形卷积核各个位置加上偏移量就变成了可以形变的卷积核。
 16. NMS、SoftNMS、IOU guided NMS。softnms不是直接删除掉大于IOU阈值的框，而是根据其阈值调整score，s = s*(1-IOU)
 ，IOU越大分数越小，然后进行分数筛选的时候就会被抑制掉。
 17. RFCN、Light-Head RCNN、MaskRCNN、YOLO、YOLOV2、YOLOV3、SSD、RetinaNet
