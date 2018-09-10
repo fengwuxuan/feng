@@ -59,8 +59,8 @@
     Integral Loss：Pooling之后学习不同的分类器，但是回归器只有一个。
 15. DCN、bigbatch、DPooling、heavier header、Light Head。其中DCN与DPooling都是在原本的卷积或者ROI Pooling的基础上去加一层卷积或者全连接，
     学习卷积的偏移量，然后作用在原本的卷积核或者Pooling上，原本的矩形卷积核各个位置加上偏移量就变成了可以形变的卷积核。
-16. NMS、SoftNMS、IOU guided NMS。softnms不是直接删除掉大于IOU阈值的框，而是根据其阈值调整score，s = s*(1-IOU)
-，IOU越大分数越小，然后进行分数筛选的时候就会被抑制掉。
+16. NMS、SoftNMS、IOU guided NMS。softnms不是直接删除掉大于IOU阈值的框，而是根据其阈值调整score，s = s*(1-IOU)，IOU越大分数越小，然后进行分数筛选的时候就会被抑制掉。
+    之所以这样是因为IOU的阈值不太容易确定，用NMS效果不好。
 17. RFCN、Light-Head RCNN、MaskRCNN、YOLO、YOLOV2、YOLOV3、SSD、RetinaNet
 18. 为什么one-stage比two-stage更容易正负样本失衡，因为RPN起到了一次过滤，正负样本失衡问题要轻一些。失衡的影响：在正负样本严重失衡的情况下进行细分类，
 softmax交叉熵损失无法抗衡这一问题，导致分类器训练失败。因此需要FocalLoss。
