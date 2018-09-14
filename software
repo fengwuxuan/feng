@@ -1,0 +1,8 @@
+1. map set multimap multiset的区别与联系
+2. hashmap hashset的区别与联系
+3. std::thread，参数传递 bind（函数+参数对象），t(函数，参数...)，各个状态，detach操作的含义
+4. mutex,cv,lock_guard,unique_lock,cv必须和锁一块儿使用
+5. 原子操作
+6. 守护进程、进程通信机制
+7. 线程通信机制
+8. OpenMPI
