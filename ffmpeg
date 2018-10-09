@@ -1,0 +1,17 @@
+1. 基本选项：
+   -format：查看可用的格式
+   -devices：查看可用的设备
+   依次可以查看可用的编解码方式、滤镜、协议等等。
+2. 全局选项
+    -loglevel loglevel  设置log级别
+    -v loglevel         设置log级别
+    -report             产生一个报告
+    -max_alloc bytes    设置最大可分配的一个block块
+    -y                  重写输出文件
+    -n                  不重写输出文件
+    -ignore_unknown     忽略未知的流类型
+    -stats              打印过程状态
+    -max_error_rate ratio of errors (0.0: no errors, 1.0: 100% error  maximum error rate
+    -bits_per_raw_sample number  set the number of bits per raw sample
+    -vol volume         change audio volume (256=normal)
+3. 
