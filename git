@@ -54,6 +54,7 @@ git push origin master : 推送到远程仓库。
 为了防止每次push都输入用户名和密码，在本地仓库的.git/config文件中加入如下信息,即可保存用户名和密码
 [credential]
     helper = store
+当远程推送被拒绝时，若是由于当前版本和master不兼容，那么需要先进行Git pull进行整理合并，然后再进行推送。
 
 
 ####################打标签
